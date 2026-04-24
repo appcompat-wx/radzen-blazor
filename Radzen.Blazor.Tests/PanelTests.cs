@@ -167,7 +167,7 @@ namespace Radzen.Blazor.Tests
                 parameters.Add(p => p.Collapse, args => { raised = true; });
             });
 
-            component.Find("button.rz-panel-titlebar-toggler").Click();
+            component.Find("a").Click();
 
             Assert.True(raised);
 
@@ -175,7 +175,7 @@ namespace Radzen.Blazor.Tests
 
             component.SetParametersAndRender(parameters => parameters.Add(p => p.Expand, args => { raised = true; }));
 
-            component.Find("button.rz-panel-titlebar-toggler").Click();
+            component.Find("a").Click();
         }
 
         [Fact]
@@ -198,10 +198,14 @@ namespace Radzen.Blazor.Tests
             });
 
             Assert.Contains("SummaryContent", component.Markup);
+            Assert.Equal(
+                "display: block",
+                component.Find(".rz-panel-content-summary").ParentElement.Attributes.First(attr => attr.Name == "style").Value
+            );
         }
 
         [Fact]
-        public void Panel_DoesNotRender_SummaryWhenOpen()
+        public void Panel_DontRenders_SummaryWhenOpen()
         {
             using var ctx = new TestContext();
             var component = ctx.RenderComponent<RadzenPanel>();
@@ -221,8 +225,8 @@ namespace Radzen.Blazor.Tests
 
             Assert.Contains("SummaryContent", component.Markup);
             Assert.Equal(
-                "true",
-                component.Find(".rz-panel-content-summary").ParentElement.ParentElement.Attributes.First(attr => attr.Name == "aria-hidden").Value
+                "display: none",
+                component.Find(".rz-panel-content-summary").ParentElement.Attributes.First(attr => attr.Name == "style").Value
             );
         }
     }

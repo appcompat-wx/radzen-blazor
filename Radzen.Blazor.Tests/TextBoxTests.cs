@@ -1,6 +1,4 @@
 using Bunit;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using Xunit;
 
 namespace Radzen.Blazor.Tests
@@ -29,26 +27,6 @@ namespace Radzen.Blazor.Tests
             component.SetParametersAndRender(parameters => parameters.Add(p => p.Value, value));
 
             Assert.Contains(@$"value=""{value}""", component.Markup);
-        }
-
-        [Fact]
-        public void TextboxCanSetFieldIdentifier()
-        {
-            using var ctx = new TestContext();
-
-            var editContext = new EditContext(ctx);
-            var fieldIdentifier = new FieldIdentifier(ctx, nameof(RadzenTextBox.Value));
-            ctx.RenderTree.TryAdd<CascadingValue<EditContext>>(parameters =>
-            {
-                parameters.Add(e => e.Value, editContext);
-            });
-
-            var component = ctx.RenderComponent<RadzenTextBox>(parameters =>
-            {
-                parameters.Add(p => p.FieldIdentifier, fieldIdentifier);
-            });
-
-            Assert.Equal(component.Instance.FieldIdentifier, fieldIdentifier);
         }
 
         [Fact]

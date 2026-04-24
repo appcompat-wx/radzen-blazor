@@ -11,7 +11,8 @@
     ColumnWidth="300px"
     AllowColumnPicking="true"
     PickedColumnsChanged="@PickedColumnsChanged"
-    ColumnsPickerAllowFiltering="true" QueryOnlyVisibleColumns="true">
+    ColumnsPickerAllowFiltering="true"
+>
     <Columns>
         <RadzenDataGridColumn
             Property=@nameof(Employee.EmployeeID)
@@ -19,7 +20,7 @@
             Width="80px"
             TextAlign="TextAlign.Center"
             Frozen="true" />
-        <RadzenDataGridColumn Property="@nameof(Employee.Photo)" Title="Photo" Sortable="false" Filterable="false" Width="200px" Pickable="false">
+        <RadzenDataGridColumn Title="Photo" Sortable="false" Width="200px" Pickable="false">
             <Template Context="data">
                 <RadzenImage Path="@data.Photo" class="rz-gravatar" AlternateText="@(data.FirstName + " " + data.LastName)" />
             </Template>

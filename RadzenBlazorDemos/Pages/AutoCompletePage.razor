@@ -1,10 +1,11 @@
-@page "/autocomplete"
+﻿@page "/autocomplete"
+@page "/docs/guides/components/autocomplete.html"
 
 <RadzenText TextStyle="TextStyle.H2" TagName="TagName.H1" class="rz-pt-8">
-    Blazor AutoComplete
+    AutoComplete
 </RadzenText>
 <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.P" class="rz-pb-4">
-    Filtering, templates, custom filter operators, and on-demand data loading.
+    Demonstration and configuration of the Radzen Blazor <strong>AutoComplete</strong> component.
 </RadzenText>
 
 <RadzenText Anchor="autocomplete#get-set-value" TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-pt-8">
@@ -30,9 +31,6 @@
 <RadzenText Anchor="autocomplete#get-selected" TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-pt-8">
     Get the selected item of AutoComplete
 </RadzenText>
-<RadzenText TextStyle="TextStyle.Body1" class="rz-mb-8">
-    Use the <code>SelectedItem</code> property to get the currently selected item from the AutoComplete.
-</RadzenText>
 <RadzenExample ComponentName="AutoComplete" Example="AutoCompleteSelectedItem">
     <AutoCompleteSelectedItem />
 </RadzenExample>
@@ -40,18 +38,12 @@
 <RadzenText Anchor="autocomplete#placeholder" TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-pt-8">
     Define AutoComplete placeholder
 </RadzenText>
-<RadzenText TextStyle="TextStyle.Body1" class="rz-mb-8">
-    Use the <code>Placeholder</code> property to display a hint text when the AutoComplete is empty.
-</RadzenText>
 <RadzenExample ComponentName="AutoComplete" Example="AutoCompletePlaceholder">
     <AutoCompletePlaceholder />
 </RadzenExample>
 
 <RadzenText Anchor="autocomplete#template" TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-pt-8">
     Define AutoComplete template
-</RadzenText>
-<RadzenText TextStyle="TextStyle.Body1" class="rz-mb-8">
-    Use the <code>Template</code> property to customize how items are displayed in the AutoComplete dropdown.
 </RadzenText>
 <RadzenExample ComponentName="AutoComplete" Example="AutoCompleteTemplate">
     <AutoCompleteTemplate />
@@ -70,18 +62,12 @@
 <RadzenText Anchor="autocomplete#load-on-demand" TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-pt-8">
     Load data on-demand in AutoComplete and apply custom filter and sort
 </RadzenText>
-<RadzenText TextStyle="TextStyle.Body1" class="rz-mb-8">
-    Use the <code>LoadData</code> event to load data on-demand and implement custom filtering and sorting logic.
-</RadzenText>
 <RadzenExample ComponentName="AutoComplete" Example="AutoCompleteLoadData">
     <AutoCompleteLoadData />
 </RadzenExample>
 
 <RadzenText Anchor="autocomplete#list-of-strings" TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-pt-8">
     AutoComplete with a List of Strings
-</RadzenText>
-<RadzenText TextStyle="TextStyle.Body1" class="rz-mb-8">
-    AutoComplete can work directly with a list of strings without the need to define text and value properties.
 </RadzenText>
 <RadzenExample ComponentName="AutoComplete" Example="AutoCompleteListOfStrings">
     <AutoCompleteListOfStrings />
@@ -90,9 +76,6 @@
 <RadzenText Anchor="autocomplete#multiline" TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-pt-8">
     Multiline AutoComplete
 </RadzenText>
-<RadzenText TextStyle="TextStyle.Body1" class="rz-mb-8">
-    Use the <code>Multiple</code> property to enable multiline AutoComplete that supports selecting multiple items.
-</RadzenText>
 <RadzenExample ComponentName="AutoComplete" Example="AutoCompleteWithMultilines">
     <AutoCompleteWithMultilines />
 </RadzenExample>
@@ -100,28 +83,12 @@
 <RadzenText Anchor="autocomplete#open-on-focus" TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-pt-8">
     Open on Focus
 </RadzenText>
-<RadzenText TextStyle="TextStyle.Body1" class="rz-mb-8">
-    Use the <code>OpenOnFocus</code> property to automatically open the AutoComplete dropdown when the input receives focus.
-</RadzenText>
 <RadzenExample ComponentName="AutoComplete" Example="AutoCompleteOpenOnFocus">
     <AutoCompleteOpenOnFocus />
 </RadzenExample>
 
-<RadzenText Anchor="autocomplete#combo-box" TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-pt-8">
-    ComboBox (restrict to list)
-</RadzenText>
-<RadzenText TextStyle="TextStyle.Body1" class="rz-mb-8">
-    Combine <code>OpenOnFocus</code> with a <code>Change</code> handler that validates the typed value against the data source to make the AutoComplete behave like a combo box: type to filter, but only values that exist in the list are accepted. A dropdown chevron is added with the same <code>rz-dropdown-trigger</code> markup the <strong>DropDown</strong> uses so it matches the surrounding theme.
-</RadzenText>
-<RadzenExample ComponentName="AutoComplete" Example="AutoCompleteComboBox">
-    <AutoCompleteComboBox />
-</RadzenExample>
-
 <RadzenText Anchor="autocomplete#disabled-autocomplete" TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-pt-8">
     Disabled AutoComplete
-</RadzenText>
-<RadzenText TextStyle="TextStyle.Body1" class="rz-mb-8">
-    Use <code>Disabled="true"</code> to disable the AutoComplete and prevent user interaction.
 </RadzenText>
 <RadzenExample ComponentName="AutoComplete" Example="AutoCompleteDisabled">
     <AutoCompleteDisabled />

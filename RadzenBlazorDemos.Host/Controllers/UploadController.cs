@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Hosting;
 using System;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace RadzenBlazorDemos
 {
@@ -17,27 +16,6 @@ namespace RadzenBlazorDemos
             this.environment = environment;
         }
 
-        [HttpPut("upload/stream")]
-        public async Task<IActionResult> Stream()
-        {
-            try
-            {
-                // Put your code here
-                
-                using (var ms = new MemoryStream())
-                {
-                    await Request.Body.CopyToAsync(ms);
-                    byte[] fileBytes = ms.ToArray();
-                    
-                    return Ok(new { Completed = true, fileSize = fileBytes.Length });
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-        
         [HttpPost("upload/single")]
         public IActionResult Single(IFormFile file)
         {
@@ -68,7 +46,7 @@ namespace RadzenBlazorDemos
                     file.CopyTo(stream);
 
                     // Return the URL of the file
-                    var url = Url.Content($"~/images/{fileName}");
+                    var url = Url.Content($"~/{fileName}");
 
                     return Ok(new { Url = url });
                 }

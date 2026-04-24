@@ -42,7 +42,7 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The spacing between inputs.</value>
         [Parameter]
-        public string? Gap { get; set; }
+        public string Gap { get; set; }
 
         bool firstRender;
         bool visibleChanged;
@@ -91,7 +91,7 @@ namespace Radzen.Blazor
                     countChanged = false;
                 }
 
-                if (Visible && !Disabled && JSRuntime != null)
+                if (Visible && !Disabled)
                 {
                     await JSRuntime.InvokeVoidAsync("Radzen.createSecurityCode", GetId(), Reference, Element,
                         Type == SecurityCodeType.Numeric ? true : false);
@@ -106,16 +106,10 @@ namespace Radzen.Blazor
         {
             base.Dispose();
 
-            if (IsJSRuntimeAvailable && JSRuntime != null)
+            if (IsJSRuntimeAvailable)
             {
-                var id = GetId();
-                if (id != null)
-                {
-                    JSRuntime.InvokeVoid("Radzen.destroySecurityCode", id, Element);
-                }
+                JSRuntime.InvokeVoidAsync("Radzen.destroySecurityCode", GetId(), Element);
             }
-
-            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -145,10 +139,7 @@ namespace Radzen.Blazor
         /// <inheritdoc/>
         public override async ValueTask FocusAsync()
         {
-            if (JSRuntime != null)
-            {
-                await JSRuntime.InvokeVoidAsync("Radzen.focusSecurityCode", Element);
-            }
+            await JSRuntime.InvokeVoidAsync("Radzen.focusSecurityCode", Element);
         }
     }
 }

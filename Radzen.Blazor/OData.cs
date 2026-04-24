@@ -66,7 +66,7 @@ namespace Radzen
         /// Gets or sets the value.
         /// </summary>
         /// <value>The value.</value>
-        public IEnumerable<T>? Value { get; set; }
+        public IEnumerable<T> Value { get; set; }
     }
 
     /// <summary>
@@ -81,16 +81,9 @@ namespace Radzen
         /// <returns><c>true</c> if the specified type is complex; otherwise, <c>false</c>.</returns>
         static bool IsComplex(Type type)
         {
-            ArgumentNullException.ThrowIfNull(type);
-
             var underlyingType = type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) ? Nullable.GetUnderlyingType(type) : type;
 
-            var baseType = underlyingType != null && underlyingType.IsGenericType ? underlyingType.GetGenericArguments().FirstOrDefault() ?? underlyingType : underlyingType;
-
-            if (baseType == null)
-            {
-                return false;
-            }
+            var baseType = underlyingType.IsGenericType ? underlyingType.GetGenericArguments().FirstOrDefault() : underlyingType;
 
             return !baseType.IsPrimitive && !typeof(IEnumerable<>).IsAssignableFrom(baseType) && 
                 type != typeof(string) && type != typeof(decimal) && type.IsClass;
@@ -103,8 +96,6 @@ namespace Radzen
         /// <returns><c>true</c> if the specified type is enumerable; otherwise, <c>false</c>.</returns>
         static bool IsEnumerable(Type type)
         {
-            ArgumentNullException.ThrowIfNull(type);
-
             return !typeof(string).IsAssignableFrom(type) && (typeof(IEnumerable<>).IsAssignableFrom(type) || typeof(IEnumerable).IsAssignableFrom(type));
         }
 
@@ -115,7 +106,7 @@ namespace Radzen
         /// <param name="value">The value.</param>
         /// <param name="options">The options.</param>
         /// <returns>System.String.</returns>
-        public static string Serialize<TValue>(TValue value, JsonSerializerOptions? options = null)
+        public static string Serialize<TValue>(TValue value, JsonSerializerOptions options = null)
         {
             if (options == null)
             {
@@ -163,7 +154,7 @@ namespace Radzen
         /// <returns>T.</returns>
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return JsonSerializer.Deserialize<T>(ref reader, options)!;
+            return JsonSerializer.Deserialize<T>(ref reader, options);
         }
 
         /// <summary>
@@ -174,7 +165,6 @@ namespace Radzen
         /// <param name="options">The options.</param>
         public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
-            ArgumentNullException.ThrowIfNull(writer);
             writer.WriteStartObject();
 
             var valueOptions = new JsonSerializerOptions();
@@ -211,7 +201,7 @@ namespace Radzen
         /// <returns>DateTime.</returns>
         public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return DateTime.Parse(reader.GetString() ?? string.Empty, CultureInfo.InvariantCulture);
+            return DateTime.Parse(reader.GetString());
         }
 
         /// <summary>
@@ -222,7 +212,6 @@ namespace Radzen
         /// <param name="options">The options.</param>
         public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
         {
-            ArgumentNullException.ThrowIfNull(writer);
             writer.WriteStringValue(value.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture));
         }
     }
@@ -245,14 +234,14 @@ namespace Radzen
         /// <param name="apply">The apply.</param>
         /// <param name="count">if set to <c>true</c> [count].</param>
         /// <returns>Uri.</returns>
-        public static Uri GetODataUri(this Uri uri, string? filter = null, int? top = null, int? skip = null, string? orderby = null, string? expand = null, string? select = null, string? apply = null, bool? count = null)
+        public static Uri GetODataUri(this Uri uri, string filter = null, int? top = null, int? skip = null, string orderby = null, string expand = null, string select = null, string apply = null, bool? count = null)
         {
             var uriBuilder = new UriBuilder(uri);
             var queryString = HttpUtility.ParseQueryString(uriBuilder.Query);
 
             if (!string.IsNullOrEmpty(filter))
             {
-                queryString["$filter"] = $"{filter.Replace("\"", "'", StringComparison.Ordinal)}";
+                queryString["$filter"] = $"{filter.Replace("\"", "'")}";
             }
 
             if (top != null)
@@ -287,7 +276,7 @@ namespace Radzen
 
             if (count != null)
             {
-                queryString["$count"] = $"{count}".ToLower(CultureInfo.InvariantCulture);
+                queryString["$count"] = $"{count}".ToLower();
             }
 
             uriBuilder.Query = queryString.ToString();

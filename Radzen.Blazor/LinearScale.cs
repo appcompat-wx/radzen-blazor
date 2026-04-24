@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -21,10 +20,10 @@ namespace Radzen.Blazor
 
             if (String.IsNullOrEmpty(format))
             {
-                return value.ToString() ?? String.Empty;
+                return value.ToString();
             }
 
-            return string.Format(CultureInfo.InvariantCulture, format, value);
+            return string.Format(format, value);
         }
 
         public override double Scale(double value, bool padding)
@@ -63,19 +62,10 @@ namespace Radzen.Blazor
             var start = Input.Start;
             var end = Input.End;
 
-
             if (start == end)
             {
-                if (end < 0)
-                {
-                    start += NiceNumber(end / ticks, false);
-                    end = 0;
-                }
-                else
-                {
-                    start = 0;
-                    end += NiceNumber(end / ticks, false);
-                }
+                start = 0;
+                end += NiceNumber(end / ticks, false);
             }
 
             if (Round && end < 0)
@@ -97,7 +87,7 @@ namespace Radzen.Blazor
             {
                 if (Step is IConvertible)
                 {
-                    step = Convert.ToDouble(Step, CultureInfo.InvariantCulture);
+                    step = Convert.ToDouble(Step);
                 }
             }
 
@@ -125,7 +115,7 @@ namespace Radzen.Blazor
 
             if (step == 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(distance), "Step must be non-zero");
+                throw new ArgumentOutOfRangeException("Step must be non-zero");
             }
 
             return (start, end, Math.Abs(step));

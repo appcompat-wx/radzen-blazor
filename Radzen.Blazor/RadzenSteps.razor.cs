@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,79 +8,37 @@ using System.Threading.Tasks;
 namespace Radzen.Blazor
 {
     /// <summary>
-    /// A wizard-style steps component that guides users through a multi-step process with numbered navigation.
-    /// RadzenSteps displays a visual progress indicator and manages sequential navigation through each step, ideal for forms, checkout flows, or setup wizards.
-    /// Provides a structured way to break complex processes into manageable sequential stages.
-    /// Features numbered circles showing current/completed/upcoming steps for visual progress, Next/Previous buttons for moving between steps or clicking on step numbers,
-    /// optional form validation integration to prevent advancing with invalid data, CanChange event to control when users can move between steps,
-    /// navigation to specific steps via SelectedIndex binding, and optional built-in Next/Previous buttons or use your own custom navigation.
-    /// Each step is defined using RadzenStepsItem components. Use the CanChange event to validate data before allowing step transitions. Integrates with Blazor EditContext for form validation.
+    /// RadzenSteps component.
     /// </summary>
     /// <example>
-    /// Basic wizard with steps:
     /// <code>
-    /// &lt;RadzenSteps @bind-SelectedIndex=@currentStep&gt;
+    /// &lt;RadzenSteps Change=@(args => Console.WriteLine($"Selected index is: {args}"))&gt;
     ///     &lt;Steps&gt;
-    ///         &lt;RadzenStepsItem Text="Personal Info"&gt;
-    ///             &lt;RadzenTextBox @bind-Value=@name Placeholder="Name" /&gt;
-    ///             &lt;RadzenTextBox @bind-Value=@email Placeholder="Email" /&gt;
+    ///         &lt;RadzenStepsItem Text="Orders"&gt;
+    ///             Details for Orders
     ///         &lt;/RadzenStepsItem&gt;
-    ///         &lt;RadzenStepsItem Text="Address"&gt;
-    ///             &lt;RadzenTextBox @bind-Value=@street Placeholder="Street" /&gt;
-    ///             &lt;RadzenTextBox @bind-Value=@city Placeholder="City" /&gt;
-    ///         &lt;/RadzenStepsItem&gt;
-    ///         &lt;RadzenStepsItem Text="Review"&gt;
-    ///             Review and submit...
+    ///         &lt;RadzenStepsItem Text="Employees"&gt;
+    ///             Details for Employees
     ///         &lt;/RadzenStepsItem&gt;
     ///     &lt;/Steps&gt;
-    /// &lt;/RadzenSteps&gt;
-    /// </code>
-    /// Steps with validation and custom buttons:
-    /// <code>
-    /// &lt;RadzenSteps ShowStepsButtons="false" CanChange=@OnCanChange&gt;
-    ///     &lt;Steps&gt;
-    ///         &lt;RadzenStepsItem Text="Step 1"&gt;Content...&lt;/RadzenStepsItem&gt;
-    ///         &lt;RadzenStepsItem Text="Step 2"&gt;Content...&lt;/RadzenStepsItem&gt;
-    ///     &lt;/Steps&gt;
-    /// &lt;/RadzenSteps&gt;
-    /// &lt;RadzenStack Orientation="Orientation.Horizontal" Gap="1rem"&gt;
-    ///     &lt;RadzenButton Text="Previous" Click=@PrevStep /&gt;
-    ///     &lt;RadzenButton Text="Next" Click=@NextStep /&gt;
-    /// &lt;/RadzenStack&gt;
+    /// &lt;/RadzenTabs&gt;
     /// </code>
     /// </example>
     public partial class RadzenSteps : RadzenComponent
     {
         /// <summary>
-        /// Gets or sets whether to display the built-in Next and Previous navigation buttons below the step content.
-        /// When false, you must provide your own navigation buttons using NextStep() and PrevStep() methods.
+        /// Gets or sets a value indicating whether to show steps buttons.
         /// </summary>
-        /// <value><c>true</c> to show built-in navigation buttons; <c>false</c> to use custom navigation. Default is <c>true</c>.</value>
+        /// <value><c>true</c> if steps buttons are shown; otherwise, <c>false</c>.</value>
         [Parameter]
         public bool ShowStepsButtons { get; set; } = true;
-
-        /// <summary>
-        /// Gets or sets the transition animation used when switching between steps.
-        /// </summary>
-        /// <value>The transition type. Default is <see cref="StepsTransition.None"/> (no animation).</value>
-        [Parameter]
-        public StepsTransition Transition { get; set; } = StepsTransition.None;
-
-        /// <summary>
-        /// Gets or sets the duration of the transition animation in milliseconds.
-        /// </summary>
-        /// <value>The animation duration in milliseconds. Default is <c>300</c>.</value>
-        [Parameter]
-        public int TransitionDuration { get; set; } = 300;
-
-        int transitionKey;
 
         /// <summary>
         /// Gets or sets the edit context.
         /// </summary>
         /// <value>The edit context.</value>
         [CascadingParameter]
-        public EditContext? EditContext { get; set; }
+        public EditContext EditContext { get; set; }
 
         /// <summary>
         /// Gets the steps collection.
@@ -111,51 +68,13 @@ namespace Radzen.Blazor
             return false;
         }
 
-        bool IsNextStepDisabled()
-        {
-            var nextIndex = SelectedIndex + 1;
-            while (nextIndex < steps.Count)
-            {
-                if (!steps[nextIndex].Visible)
-                {
-                    nextIndex++;
-                    continue;
-                }
-
-                break;
-            }
-
-            return nextIndex < steps.Count && steps[nextIndex].Disabled;
-        }
-
-        bool IsPrevStepDisabled()
-        {
-            var prevIndex = SelectedIndex - 1;
-            while (prevIndex >= 0 && prevIndex < steps.Count)
-            {
-                if (!steps[prevIndex].Visible)
-                {
-                    prevIndex--;
-                    continue;
-                }
-
-                break;
-            }
-
-            return prevIndex >= 0 && prevIndex < steps.Count && steps[prevIndex].Disabled;
-        }
-
         /// <summary>
-        /// Programmatically navigates to the next visible step in the sequence.
-        /// If already at the last step, this method does nothing. Respects CanChange validation.
+        /// Goes to next step.
         /// </summary>
-        /// <returns>A task representing the asynchronous navigation operation.</returns>
-        public virtual async System.Threading.Tasks.Task NextStep()
+        public async System.Threading.Tasks.Task NextStep()
         {
             if (!IsLastVisibleStep())
             {
-                var currentStep = steps.ElementAtOrDefault(SelectedIndex);
-
                 var nextIndex = SelectedIndex + 1;
                 while (nextIndex < steps.Count)
                 {
@@ -169,25 +88,16 @@ namespace Radzen.Blazor
                 }
 
                 await SelectStepFromIndex(nextIndex);
-
-                if (SelectedIndex == nextIndex && currentStep != null)
-                {
-                    await currentStep.OnNextStep.InvokeAsync();
-                }
             }
         }
 
         /// <summary>
-        /// Programmatically navigates to the previous visible step in the sequence.
-        /// If already at the first step, this method does nothing. Respects CanChange validation.
+        /// Goes to previous step.
         /// </summary>
-        /// <returns>A task representing the asynchronous navigation operation.</returns>
-        public virtual async System.Threading.Tasks.Task PrevStep()
+        public async System.Threading.Tasks.Task PrevStep()
         {
             if (!IsFirstVisibleStep())
             {
-                var currentStep = steps.ElementAtOrDefault(SelectedIndex);
-
                 var prevIndex = SelectedIndex - 1;
                 while (prevIndex >= 0)
                 {
@@ -201,11 +111,6 @@ namespace Radzen.Blazor
                 }
 
                 await SelectStepFromIndex(prevIndex);
-
-                if (SelectedIndex == prevIndex && currentStep != null)
-                {
-                    await currentStep.OnPreviousStep.InvokeAsync();
-                }
             }
         }
 
@@ -222,7 +127,7 @@ namespace Radzen.Blazor
             }
         }
 
-        private int selectedIndex;
+        int _selectedIndex = 0;
         /// <summary>
         /// Gets or sets the selected index.
         /// </summary>
@@ -232,13 +137,13 @@ namespace Radzen.Blazor
         {
             get
             {
-                return selectedIndex;
+                return _selectedIndex;
             }
             set
             {
-                if (selectedIndex != value)
+                if (_selectedIndex != value)
                 {
-                    selectedIndex = value;
+                    _selectedIndex = value;
                 }
             }
         }
@@ -276,7 +181,7 @@ namespace Radzen.Blazor
         [Parameter]
         public EventCallback<StepsCanChangeEventArgs> CanChange { get; set; }
 
-        private string nextStep = "Next";
+        private string _nextStep = "Next";
         /// <summary>
         /// Gets or sets the next button text.
         /// </summary>
@@ -286,20 +191,20 @@ namespace Radzen.Blazor
         {
             get
             {
-                return StepsCollection.ElementAtOrDefault(SelectedIndex)?.NextText ?? nextStep;
+                return StepsCollection.ElementAtOrDefault(SelectedIndex)?.NextText ?? _nextStep;
             }
             set
             {
-                if (value != nextStep)
+                if (value != _nextStep)
                 {
-                    nextStep = value;
+                    _nextStep = value;
 
                     Refresh();
                 }
             }
         }
 
-        private string previousText = "Previous";
+        private string _previousText = "Previous";
         /// <summary>
         /// Gets or sets the previous button text.
         /// </summary>
@@ -309,20 +214,20 @@ namespace Radzen.Blazor
         {
             get
             {
-                return StepsCollection.ElementAtOrDefault(SelectedIndex)?.PreviousText ?? previousText;
+                return StepsCollection.ElementAtOrDefault(SelectedIndex)?.PreviousText ?? _previousText;
             }
             set
             {
-                if (value != previousText)
+                if (value != _previousText)
                 {
-                    previousText = value;
+                    _previousText = value;
 
                     Refresh();
                 }
             }
         }
 
-        private string nextTitle = "Go to the next step.";
+        private string _nextTitle = "Go to the next step.";
         /// <summary>
         /// Gets or sets the next button title attribute.
         /// </summary>
@@ -332,19 +237,19 @@ namespace Radzen.Blazor
         {
             get
             {
-                return StepsCollection.ElementAtOrDefault(SelectedIndex)?.NextTitle ?? nextTitle;
+                return StepsCollection.ElementAtOrDefault(SelectedIndex)?.NextTitle ?? _nextTitle;
             }
             set
             {
-                if (value != nextTitle)
+                if (value != _nextTitle)
                 {
-                    nextTitle = value;
+                    _nextTitle = value;
                     Refresh();
                 }
             }
         }
 
-        private string previousTitle = "Go to the previous step.";
+        private string _previousTitle = "Go to the previous step.";
         /// <summary>
         /// Gets or sets the previous button title attribute.
         /// </summary>
@@ -354,13 +259,13 @@ namespace Radzen.Blazor
         {
             get
             {
-                return StepsCollection.ElementAtOrDefault(SelectedIndex)?.PreviousTitle ?? previousTitle;
+                return StepsCollection.ElementAtOrDefault(SelectedIndex)?.PreviousTitle ?? _previousTitle;
             }
             set
             {
-                if (value != previousTitle)
+                if (value != _previousTitle)
                 {
-                    previousTitle = value;
+                    _previousTitle = value;
                     Refresh();
                 }
             }
@@ -370,20 +275,20 @@ namespace Radzen.Blazor
         /// Gets the next button aria-label attribute.
         /// </summary>
         /// <value>The next button aria-label attribute.</value>
-        public string? NextAriaLabel => StepsCollection.ElementAtOrDefault(SelectedIndex)?.NextAriaLabel;
+        public string NextAriaLabel => StepsCollection.ElementAtOrDefault(SelectedIndex)?.NextAriaLabel;
 
         /// <summary>
         /// Gets the previous button aria-label attribute.
         /// </summary>
         /// <value>The previous button aria-label attribute.</value>
-        public string? PreviousAriaLabel => StepsCollection.ElementAtOrDefault(SelectedIndex)?.PreviousAriaLabel;
+        public string PreviousAriaLabel => StepsCollection.ElementAtOrDefault(SelectedIndex)?.PreviousAriaLabel;
 
         /// <summary>
         /// Gets or sets the steps.
         /// </summary>
         /// <value>The steps.</value>
         [Parameter]
-        public RenderFragment? Steps { get; set; }
+        public RenderFragment Steps { get; set; }
 
         /// <summary>
         /// 
@@ -392,10 +297,7 @@ namespace Radzen.Blazor
         [Parameter]
         public bool AllowStepSelect { get; set; } = true;
 
-        /// <summary>
-        /// The collection of steps.
-        /// </summary>
-        protected List<RadzenStepsItem> steps = new List<RadzenStepsItem>();
+        List<RadzenStepsItem> steps = new List<RadzenStepsItem>();
 
         /// <summary>
         /// Adds the step.
@@ -403,7 +305,6 @@ namespace Radzen.Blazor
         /// <param name="step">The step.</param>
         public void AddStep(RadzenStepsItem step)
         {
-            ArgumentNullException.ThrowIfNull(step);
             if (steps.IndexOf(step) == -1)
             {
                 if (step.Selected)
@@ -422,8 +323,10 @@ namespace Radzen.Blazor
         /// <param name="item">The item.</param>
         public void RemoveStep(RadzenStepsItem item)
         {
-            if (steps.Remove(item))
+            if (steps.Contains(item))
             {
+                steps.Remove(item);
+
                 if (!disposed)
                 {
                     try { InvokeAsync(StateHasChanged); } catch { }
@@ -447,12 +350,7 @@ namespace Radzen.Blazor
             return SelectedIndex == index;
         }
 
-        /// <summary>
-        /// Selects the specified step.
-        /// </summary>
-        /// <param name="step">The step to select.</param>
-        /// <param name="raiseChange">Whether to raise change events.</param>
-        protected internal virtual async System.Threading.Tasks.Task SelectStep(RadzenStepsItem step, bool raiseChange = false)
+        internal async System.Threading.Tasks.Task SelectStep(RadzenStepsItem step, bool raiseChange = false)
         {
             var newIndex = steps.IndexOf(step);
 
@@ -474,7 +372,6 @@ namespace Radzen.Blazor
 
             if (valid || newIndex < SelectedIndex)
             {
-                transitionKey++;
                 SelectedIndex = newIndex;
 
                 if (raiseChange)
@@ -489,26 +386,6 @@ namespace Radzen.Blazor
         internal void SelectFirst()
         {
             SelectedIndex = 0;
-        }
-
-        string GetContentCssClass()
-        {
-            return Transition switch
-            {
-                StepsTransition.Fade => "rz-widget-content rz-steps-fade",
-                StepsTransition.Slide => "rz-widget-content rz-steps-slide",
-                _ => "rz-widget-content"
-            };
-        }
-
-        string GetTransitionStyle()
-        {
-            if (Transition != StepsTransition.None)
-            {
-                return $"--rz-steps-transition-duration: {TransitionDuration}ms";
-            }
-
-            return string.Empty;
         }
 
         /// <inheritdoc />
@@ -537,8 +414,7 @@ namespace Radzen.Blazor
             await base.SetParametersAsync(parameters);
         }
 
-        bool preventKeyPress;
-        bool stopKeypressPropagation;
+        bool preventKeyPress = false;
         async Task OnKeyPress(KeyboardEventArgs args, Task task)
         {
             var key = args.Code != null ? args.Code : args.Key;
@@ -546,14 +422,12 @@ namespace Radzen.Blazor
             if (key == "Space" || key == "Enter")
             {
                 preventKeyPress = true;
-                stopKeypressPropagation = true;
 
                 await task;
             }
             else
             {
                 preventKeyPress = false;
-                stopKeypressPropagation = false;
             }
         }
     }

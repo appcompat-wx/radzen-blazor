@@ -1,13 +1,13 @@
-@using Radzen.Blazor.Rendering
+﻿@using Radzen.Blazor.Rendering
 @inherits RadzenChartComponentBase
 @implements IChartSeriesOverlay
 @implements IDisposable
 
 @code {
-    IChartSeries? series;
+    IChartSeries series;
 
     [CascadingParameter]
-    protected IChartSeries? Series
+    protected IChartSeries Series
     {
         get
         {
@@ -15,11 +15,6 @@
         }
         set
         {
-            if (value == null)
-            {
-                series = null;
-                return;
-            }
             if (!value.Overlays.Contains(this))
             {
                 series = value;
@@ -33,19 +28,16 @@
         return builder =>
         {
             builder.OpenRegion(0);
-            if (series != null)
+            foreach (var label in series.GetDataLabels(OffsetX, OffsetY))
             {
-                foreach (var label in series.GetDataLabels(OffsetX, OffsetY))
+                if (!(double.IsNaN(label.Position.X) || double.IsNaN(label.Position.Y)))
                 {
-                    if (!(double.IsNaN(label.Position.X) || double.IsNaN(label.Position.Y)))
-                    {
-                        builder.AddContent(1,
-                                @<g>
-                                    <Text @key="@($"{label.Position}-{(Chart != null ? Chart.Series.IndexOf(series) : -1)}")"
-                                            Value="@label.Text" Position="@label.Position" Fill="@Fill" TextAnchor="@label.TextAnchor" class="@GetSeriesDataLabelClass()" />
-                                </g>
-                        );
-                    }
+                    builder.AddContent(1,
+                            @<g>
+                                <Text @key="@($"{label.Position}-{Chart.Series.IndexOf(series)}")"
+                                        Value="@label.Text" Position="@label.Position" Fill="@Fill" TextAnchor="@label.TextAnchor" class="@GetSeriesDataLabelClass()" />
+                            </g>
+                    );
                 }
             }
             builder.CloseRegion();
@@ -64,7 +56,7 @@
 
     public RenderFragment RenderTooltip(double mouseX, double mouseY)
     {
-        return null!;
+        return null;
     }
 
     /// <inheritdoc />

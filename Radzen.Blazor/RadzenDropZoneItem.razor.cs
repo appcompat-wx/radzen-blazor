@@ -10,52 +10,44 @@ namespace Radzen.Blazor
     public partial class RadzenDropZoneItem<TItem> : RadzenComponent
     {
         [CascadingParameter]
-        TItem Item { get; set; } = default!;
+        TItem Item { get; set; }
 
         [CascadingParameter]
-        RadzenDropZone<TItem> Zone { get; set; } = default!;
+        RadzenDropZone<TItem> Zone { get; set; }
 
         [CascadingParameter]
-        RadzenDropZoneContainer<TItem> Container { get; set; } = default!;
+        RadzenDropZoneContainer<TItem> Container { get; set; }
 
-        void EnsurePayload(DragEventArgs? args = null)
+        void EnsurePayload(DragEventArgs args = null)
         {
             Container.Payload = new RadzenDropZoneItemEventArgs<TItem>()
             {
                 FromZone = Zone,
                 Item = Item,
-                DataTransfer = args?.DataTransfer ?? default!
+                DataTransfer = args?.DataTransfer
             };
         }
 
-        async Task OnDragStart()
+        void OnDragStart()
         {
             dragCssClass = "rz-dragging";
             EnsurePayload();
-
-            if (Container != null)
-            {
-                await Container.DragStart.InvokeAsync(Container.Payload);
-            }
         }
 
         void OnDragOver(DragEventArgs args)
         {
-            if (Container?.Payload == null)
+            if (Container.Payload == null)
             {
                 EnsurePayload(args);
             }
 
-            if (Container?.Payload != null)
-            {
-                Container.Payload.ToItem = Item;
-            }
+            Container.Payload.ToItem = Item;
 
-            var canDrop = Zone?.CanDrop() ?? false;
+            var canDrop = Zone.CanDrop();
             args.DataTransfer.DropEffect = canDrop ? "move" : "none";
             cssClass = canDrop ? "rz-can-drop" : "rz-no-drop";
 
-            Zone?.OnDragOver(args);
+            Zone.OnDragOver(args);
         }
 
         void OnDragLeave(DragEventArgs args)
@@ -63,35 +55,24 @@ namespace Radzen.Blazor
             cssClass = "";
         }
 
-        async Task OnDragEnd(DragEventArgs args)
+        void OnDragEnd(DragEventArgs args)
         {
             dragCssClass = "";
-
-            if (Container != null)
-            {
-                await Container.DragEnd.InvokeAsync(Container.Payload);
-            }
         }
 
         async Task OnDrop(DragEventArgs args)
         {
-            if (Container?.Payload == null)
+            if (Container.Payload == null)
             {
                 EnsurePayload(args);
             }
             cssClass = "";
-            if (Container?.Payload != null)
-            {
-                Container.Payload.ToItem = Item;
-            }
-            if (Zone != null)
-            {
-                await Zone.OnDropInternal();
-            }
+            Container.Payload.ToItem = Item;
+            await Zone.OnDropInternal();
         }
 
-        string cssClass = string.Empty;
-        string dragCssClass = string.Empty;
+        string cssClass;
+        string dragCssClass;
 
         /// <inheritdoc />
         protected override string GetComponentCssClass()

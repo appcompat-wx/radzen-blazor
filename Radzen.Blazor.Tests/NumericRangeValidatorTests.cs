@@ -16,7 +16,7 @@ namespace Radzen.Blazor.Tests
 
             public string Name { get; set; }
 
-            public FieldIdentifier FieldIdentifier { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public FieldIdentifier FieldIdentifier => throw new System.NotImplementedException();
 
             public object GetValue()
             {

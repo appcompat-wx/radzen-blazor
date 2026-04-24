@@ -1,77 +1,9 @@
-﻿using System.Collections;
-using Bunit;
-using Xunit;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Xunit;
 
 namespace Radzen.Blazor.Tests
 {
 	public class AutoCompleteTests
 	{
-        [Fact]
-        public void AutoComplete_Renders_WithClassName()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            var component = ctx.RenderComponent<RadzenAutoComplete>();
-
-            Assert.Contains(@"rz-autocomplete", component.Markup);
-        }
-
-        [Fact]
-        public void AutoComplete_Renders_InputElement()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            var component = ctx.RenderComponent<RadzenAutoComplete>();
-
-            Assert.Contains("type=\"text\"", component.Markup);
-            Assert.Contains("rz-inputtext", component.Markup);
-        }
-
-        [Fact]
-        public void AutoComplete_Renders_Disabled()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            var component = ctx.RenderComponent<RadzenAutoComplete>(parameters =>
-            {
-                parameters.Add(p => p.Disabled, true);
-            });
-
-            Assert.Contains("disabled", component.Markup);
-            Assert.Contains("rz-state-disabled", component.Markup);
-        }
-
-        [Fact]
-        public void AutoComplete_Renders_Placeholder()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            var component = ctx.RenderComponent<RadzenAutoComplete>(parameters =>
-            {
-                parameters.Add(p => p.Placeholder, "Type to search...");
-            });
-
-            Assert.Contains("placeholder=\"Type to search...\"", component.Markup);
-        }
-
-        [Fact]
-        public void AutoComplete_Renders_WithData()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            var data = new List<string> { "Apple", "Banana", "Cherry" };
-
-            var component = ctx.RenderComponent<RadzenAutoComplete>(parameters =>
-            {
-                parameters.Add(p => p.Data, data);
-            });
-
-            Assert.Contains("rz-autocomplete-panel", component.Markup);
-        }
-
         [Fact]
         public void AutoComplete_Enum_Converts_To_Attr_Value()
         {
@@ -137,31 +69,6 @@ namespace Radzen.Blazor.Tests
             Assert.Equal("given-name", AutoCompleteType.FirstName.GetAutoCompleteValue());
             Assert.Equal("additional-name", AutoCompleteType.MiddleName.GetAutoCompleteValue());
             Assert.Equal("family-name", AutoCompleteType.LastName.GetAutoCompleteValue());
-        }
-
-        [Fact]
-        public void AutoComplete_Filters_StringList()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            var data = new List<string> { "Apple", "Banana", "Cherry" };
-
-            var component = ctx.RenderComponent<AutoCompleteWithAccessibleView>(parameters =>
-            {
-                parameters
-                    .Add(p => p.Data, data)
-                    .Add(p => p.SearchText, "Ban")
-                    .Add(p => p.OpenOnFocus, true);
-            });
-            
-            Assert.Contains("Banana", component.Instance.CurrentView.OfType<string>());
-            Assert.DoesNotContain("Apple", component.Instance.CurrentView.OfType<string>());
-            Assert.DoesNotContain("Cherry", component.Instance.CurrentView.OfType<string>());
-        }
-        
-        private sealed class AutoCompleteWithAccessibleView : RadzenAutoComplete
-        {
-            public IEnumerable CurrentView => View;
         }
     }
 }

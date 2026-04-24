@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -51,14 +50,14 @@ namespace Radzen.Blazor
         {
             if (min != null)
             {
-                var minDate = Convert.ToDateTime(min, CultureInfo.InvariantCulture);
+                var minDate = Convert.ToDateTime(min);
                 Input.Start = minDate.Ticks;
                 Round = false;
             }
 
             if (max != null)
             {
-                var maxDate = Convert.ToDateTime(max, CultureInfo.InvariantCulture);
+                var maxDate = Convert.ToDateTime(max);
                 Input.End = maxDate.Ticks;
                 Round = false;
             }

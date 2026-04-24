@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using System;
 
 namespace Radzen.Blazor
 {
@@ -14,21 +13,21 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The text.</value>
         [Parameter]
-        public string? Text { get; set; }
+        public string Text { get; set; }
 
         /// <summary>
         /// Gets or sets the template.
         /// </summary>
         /// <value>The template.</value>
         [Parameter]
-        public RenderFragment<RadzenCheckBoxListItem<TValue>>? Template { get; set; }
+        public RenderFragment<RadzenCheckBoxListItem<TValue>> Template { get; set; }
 
         /// <summary>
         /// Gets or sets the value.
         /// </summary>
         /// <value>The value.</value>
         [Parameter]
-        public TValue? Value { get; set; }
+        public TValue Value { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="RadzenCheckBoxListItem{TValue}"/> is disabled.
@@ -44,25 +43,25 @@ namespace Radzen.Blazor
         [Parameter]
         public bool ReadOnly { get; set; }
 
-        RadzenCheckBoxList<TValue>? checkBoxList;
+        RadzenCheckBoxList<TValue> _checkBoxList;
 
         /// <summary>
         /// Gets or sets the CheckBox list.
         /// </summary>
         /// <value>The CheckBox list.</value>
         [CascadingParameter]
-        public RadzenCheckBoxList<TValue>? CheckBoxList
+        public RadzenCheckBoxList<TValue> CheckBoxList
         {
             get
             {
-                return checkBoxList;
+                return _checkBoxList;
             }
             set
             {
-                if (checkBoxList != value)
+                if (_checkBoxList != value)
                 {
-                    checkBoxList = value;
-                    checkBoxList?.AddItem(this);
+                    _checkBoxList = value;
+                    _checkBoxList.AddItem(this);
                 }
             }
         }
@@ -74,7 +73,6 @@ namespace Radzen.Blazor
         {
             base.Dispose();
             CheckBoxList?.RemoveItem(this);
-            GC.SuppressFinalize(this);
         }
 
         internal void SetText(string value)
@@ -97,7 +95,7 @@ namespace Radzen.Blazor
             ReadOnly = value;
         }
 
-        internal string? GetItemId()
+        internal string GetItemId()
         {
             return GetId();
         }

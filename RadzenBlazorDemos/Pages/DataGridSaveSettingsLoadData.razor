@@ -1,4 +1,4 @@
-@using Radzen
+﻿@using Radzen
 @using RadzenBlazorDemos.Data
 @using RadzenBlazorDemos.Models.Northwind
 @using Microsoft.EntityFrameworkCore
@@ -11,9 +11,11 @@
 
 @inherits DbContextPage
 
+<p>This example shows how to save/load DataGrid state using Settings property when binding using LoadData event.</p>
+<p>The state includes current page index, page size, groups and columns filter, sort, order, width and visibility.</p>
 <RadzenButton Click="@(args => Settings = null)" Text="Clear saved settings" Style="margin-bottom: 16px" />
 <RadzenButton Click="@(args => NavigationManager.NavigateTo("/datagrid-save-settings-loaddata", true))" Text="Reload" Style="margin-bottom: 16px" />
-<RadzenDataGrid @ref=grid @bind-Settings="@Settings" LoadSettings="@LoadSettings" TItem="Employee" PickedColumnsChanged="@OnPickedColumnsChanged" AllowFiltering="true" AllowColumnPicking="true" AllowGrouping="true" AllowPaging="true" 
+<RadzenDataGrid @ref=grid @bind-Settings="@Settings" LoadSettings="@LoadSettings" AllowFiltering="true" AllowColumnPicking="true" AllowGrouping="true" AllowPaging="true" 
                 AllowSorting="true" AllowMultiColumnSorting="true" ShowMultiColumnSortingIndex="true"
                 AllowColumnResize="true" AllowColumnReorder="true" ColumnWidth="200px"
                 FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -31,17 +33,6 @@
         <RadzenDataGridColumn Property="@nameof(Employee.HireDate)" Title="Hire Date" FormatString="{0:d}" />
         <RadzenDataGridColumn Property="@nameof(Employee.City)" Title="City" />
         <RadzenDataGridColumn Property="@nameof(Employee.Country)" Title="Country" />
-
-        <RadzenDataGridColumn Property="Orders" FilterProperty="ShipCity" Title="Order ship city" Type="typeof(ICollection<Order>)" Sortable="false">
-            <Template>
-                @(string.Join(',', context.Orders.Select(od => od.ShipCity)))
-            </Template>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="Orders" FilterProperty="ShipPostalCode" Title="Order ShipPostalCode" Type="typeof(ICollection<Order>)" Sortable="false">
-            <Template>
-                @(string.Join(',', context.Orders.Select(od => od.ShipPostalCode)))
-            </Template>
-        </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 
@@ -64,7 +55,7 @@
 
         await Task.Yield();
 
-        var query = dbContext.Employees.Include("Orders").AsQueryable();
+        var query = dbContext.Employees.AsQueryable();
 
         if (!string.IsNullOrEmpty(args.Filter))
         {
@@ -139,10 +130,5 @@
         {
             args.Settings = Settings;
         }
-    }
-
-    async Task OnPickedColumnsChanged(DataGridPickedColumnsChangedEventArgs<Employee> args)
-    {
-        await SaveStateAsync();
     }
 }

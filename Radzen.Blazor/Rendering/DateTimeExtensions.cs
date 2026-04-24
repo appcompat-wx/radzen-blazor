@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 using System.Globalization;
 
 namespace Radzen.Blazor.Rendering
@@ -14,18 +13,9 @@ namespace Radzen.Blazor.Rendering
         /// </summary>
         /// <param name="date">The date.</param>
         /// <returns>DateTime.</returns>
-        public static DateTime StartOfWeek(this DateTime date) => date.StartOfWeek(CultureInfo.CurrentCulture);
-
-        /// <summary>
-        /// Starts the of week.
-        /// </summary>
-        /// <param name="date">The date.</param>
-        /// <param name="info">The information.</param>
-        /// <returns>DateTime.</returns>
-        public static DateTime StartOfWeek(this DateTime date, CultureInfo info)
+        public static DateTime StartOfWeek(this DateTime date)
         {
-            ArgumentNullException.ThrowIfNull(info);
-            var diff = date.DayOfWeek - info.DateTimeFormat.FirstDayOfWeek;
+            var diff = date.DayOfWeek - DateTimeFormatInfo.CurrentInfo.FirstDayOfWeek;
 
             if (diff < 0)
             {
@@ -34,33 +24,35 @@ namespace Radzen.Blazor.Rendering
 
             return date.AddDays(-diff).Date;
         }
+
         /// <summary>
         /// Starts the of month.
         /// </summary>
         /// <param name="date">The date.</param>
         /// <returns>DateTime.</returns>
-        public static DateTime StartOfMonth(this DateTime date) => new(date.Year, date.Month, 1);
+        public static DateTime StartOfMonth(this DateTime date)
+        {
+            return new DateTime(date.Year, date.Month, 1);
+        }
 
         /// <summary>
         /// Ends the of month.
         /// </summary>
         /// <param name="date">The date.</param>
         /// <returns>DateTime.</returns>
-        public static DateTime EndOfMonth(this DateTime date) => date.StartOfMonth().AddMonths(1).AddDays(-1);
+        public static DateTime EndOfMonth(this DateTime date)
+        {
+            return date.StartOfMonth().AddMonths(1).AddDays(-1);
+        }
 
         /// <summary>
         /// Ends the of week.
         /// </summary>
         /// <param name="date">The date.</param>
         /// <returns>DateTime.</returns>
-        public static DateTime EndOfWeek(this DateTime date) => date.EndOfWeek(CultureInfo.CurrentCulture);
-
-        /// <summary>
-        /// Ends the of week.
-        /// </summary>
-        /// <param name="date">The date.</param>
-        /// <param name="info">The information.</param>
-        /// <returns>DateTime.</returns>
-        public static DateTime EndOfWeek(this DateTime date, CultureInfo info) => date.StartOfWeek(info).AddDays(6);
+        public static DateTime EndOfWeek(this DateTime date)
+        {
+            return date.StartOfWeek().AddDays(6);
+        }
     }
 }

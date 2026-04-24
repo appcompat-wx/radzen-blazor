@@ -44,18 +44,18 @@ namespace Radzen
         /// <summary>
         /// Gets or sets a value indicating whether to use secure cookies.
         /// </summary>
-        public bool IsSecure { get; set; }
+        public bool IsSecure { get; set; } = false;
 
         /// <summary>
         /// Gets or sets the SameSite attribute for the cookie.
         /// </summary>
-        public CookieSameSiteMode? SameSite { get; set; }
+        public CookieSameSiteMode? SameSite { get; set; } = null;
     }
 
     /// <summary>
     /// Persist the current theme in a cookie. Requires <see cref="ThemeService" /> to be registered in the DI container.
     /// </summary>
-    public class CookieThemeService : IDisposable
+    public class CookieThemeService
     {
         private readonly CookieThemeServiceOptions options;
         private readonly IJSRuntime jsRuntime;
@@ -64,16 +64,13 @@ namespace Radzen
         /// <summary>
         /// Initializes a new instance of the <see cref="CookieThemeService" /> class.
         /// </summary>
-        public CookieThemeService(IJSRuntime jsRuntime, ThemeService themeService, IOptions<CookieThemeServiceOptions>? options)
+        public CookieThemeService(IJSRuntime jsRuntime, ThemeService themeService, IOptions<CookieThemeServiceOptions> options)
         {
             this.jsRuntime = jsRuntime;
             this.themeService = themeService;
-            this.options = options?.Value ?? new CookieThemeServiceOptions();
+            this.options = options.Value;
 
-            if (themeService != null)
-            {
-                themeService.ThemeChanged += OnThemeChanged;
-            }
+            themeService.ThemeChanged += OnThemeChanged;
 
             _ = InitializeAsync();
         }
@@ -120,13 +117,6 @@ namespace Radzen
             }
 
             _ = jsRuntime.InvokeVoidAsync("eval", $"document.cookie = \"{cookie}\"");
-        }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            themeService.ThemeChanged -= OnThemeChanged;
-            GC.SuppressFinalize(this);
         }
     }
 

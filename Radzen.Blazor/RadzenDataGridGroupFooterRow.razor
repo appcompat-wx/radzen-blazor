@@ -6,12 +6,16 @@
         {
             @if (Grid.Template != null && Grid.ShowExpandColumn)
             {
-                <td class="rz-col-icon rz-unselectable-text" scope="col" rowspan=@(Grid.deepestChildColumnLevel + 1)>
-                    <span class="rz-column-title"></span>
-                </td>
+                @if (Grid.ShowGroupExpandColumn)
+                {
+                    <th class="rz-col-icon rz-unselectable-text" scope="col">
+                        <span class="rz-column-title"></span>
+                    </th>
+                }
+
             }
         }
-        @for (var j = 0; j < GetLevel() + (Grid.ShowGroupExpandColumn ? 0 : -1) + Grid.Groups.Count - GetLevel(); j++)
+        @for (var j = 0; j < GetLevel(); j++)
         {
             <td class="rz-col-icon">
                 <span class="rz-column-title"></span>
@@ -24,57 +28,57 @@
     </tr>
 }
 @code {
-    [Parameter]
-    public IList<RadzenDataGridColumn<TItem>> Columns { get; set; } = new List<RadzenDataGridColumn<TItem>>();
+        [Parameter]
+        public IList<RadzenDataGridColumn<TItem>> Columns { get; set; }
 
-    GroupResult _groupResult = new GroupResult();
-    [Parameter]
+    GroupResult _groupResult;
+        [Parameter]
     public GroupResult GroupResult
-    {
-        get
         {
-            return _groupResult;
-        }
-        set
-        {
-            if(_groupResult != value)
+            get
             {
-                _groupResult = value;
-
-                var l = GetLevel();
-                var level = l > 0 ? l - 1 : l;
-
-                Group = new Group()
+                return _groupResult;
+            }
+            set
+            {
+                if(_groupResult != value)
                 {
-                    Level = level,
-                    GroupDescriptor = Grid.Groups[level],
-                    Data = _groupResult
-                };
+                    _groupResult = value;
+
+                    var l = GetLevel();
+                    var level = l > 0 ? l - 1 : l;
+
+                    Group = new Group()
+                    {
+                        Level = level,
+                        GroupDescriptor = Grid.Groups[level],
+                        Data = _groupResult
+                    };
+                }
             }
         }
-    }
 
-    [Parameter]
-    public RadzenDataGrid<TItem> Grid { get; set; } = default!;
+        [Parameter]
+        public RadzenDataGrid<TItem> Grid { get; set; }
 
-    [Parameter]
-    public RadzenDataGridGroupRow<TItem>? Parent { get; set; }
+        [Parameter]
+        public RadzenDataGridGroupRow<TItem> Parent { get; set; }
 
-    [Parameter]
-    public Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder Builder { get; set; } = default!;
+        [Parameter]
+        public Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder Builder { get; set; }
 
-    public Group Group { get; set; } = new Group();
+        public Group Group { get; set; }
 
-    int GetLevel()
-    {
-        int i = 0;
-        var p = Parent;
-        while(p != null)
+        int GetLevel()
         {
-            p = p.Parent;
-            i++;
-        }
+            int i = 0;
+            var p = Parent;
+            while(p != null)
+            {
+                p = p.Parent;
+                i++;
+            }
 
-        return i;
-    }
+            return i;
+        }
 }

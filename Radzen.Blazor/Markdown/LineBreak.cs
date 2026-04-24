@@ -1,5 +1,3 @@
-using System;
-
 namespace Radzen.Blazor.Markdown;
 
 /// <summary>
@@ -10,7 +8,6 @@ public class LineBreak : Inline
     /// <inheritdoc />
     public override void Accept(INodeVisitor visitor)
     {
-        ArgumentNullException.ThrowIfNull(visitor);
         visitor.VisitLineBreak(this);
     }
 }

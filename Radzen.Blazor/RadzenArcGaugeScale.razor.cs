@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Radzen.Blazor.Rendering;
 using System;
-using System.Globalization;
 
 namespace Radzen.Blazor
 {
@@ -15,14 +14,14 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The gauge.</value>
         [CascadingParameter]
-        public RadzenArcGauge? Gauge { get; set; }
+        public RadzenArcGauge Gauge { get; set; }
 
         /// <summary>
         /// Gets or sets the stroke.
         /// </summary>
         /// <value>The stroke.</value>
         [Parameter]
-        public string Stroke { get; set; } = string.Empty;
+        public string Stroke { get; set; }
 
         /// <summary>
         /// Gets or sets the width of the stroke.
@@ -36,7 +35,7 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The child content.</value>
         [Parameter]
-        public RenderFragment? ChildContent { get; set; }
+        public RenderFragment ChildContent { get; set; }
 
         /// <summary>
         /// Gets or sets the length of the tick.
@@ -64,14 +63,14 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The format string.</value>
         [Parameter]
-        public string FormatString { get; set; } = string.Empty;
+        public string FormatString { get; set; }
 
         /// <summary>
         /// Gets or sets the fill.
         /// </summary>
         /// <value>The fill.</value>
         [Parameter]
-        public string Fill { get; set; } = string.Empty;
+        public string Fill { get; set; }
 
         /// <summary>
         /// Gets or sets the height.
@@ -85,7 +84,7 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The formatter.</value>
         [Parameter]
-        public Func<double, string> Formatter { get; set; } = value => value.ToString(CultureInfo.CurrentCulture);
+        public Func<double, string> Formatter { get; set; } = value => value.ToString();
 
         /// <summary>
         /// Gets or sets the start angle.
@@ -210,19 +209,13 @@ namespace Radzen.Blazor
         {
             get
             {
-                var gauge = Gauge;
-                if (gauge?.Width == null || gauge.Height == null)
-                {
-                    return 0;
-                }
-
-                var radius = Math.Min(gauge.Width.Value, gauge.Height.Value) / 2 - Margin * 2;
+                var radius = Math.Min(Gauge.Width.Value, Gauge.Height.Value) / 2 - Margin * 2;
 
                 radius *= Radius;
 
                 if (TickPosition == GaugeTickPosition.Outside)
                 {
-                    radius -= TextMeasurer.TextWidth(Max.ToString(CultureInfo.InvariantCulture), 16);
+                    radius -= TextMeasurer.TextWidth(Max.ToString(), 16);
                 }
 
                 return radius;
@@ -250,17 +243,11 @@ namespace Radzen.Blazor
         {
             get
             {
-                var gauge = Gauge;
-                if (gauge?.Width == null || gauge.Height == null)
-                {
-                    return 0;
-                }
-
-                var radius = Math.Min(gauge.Width.Value, gauge.Height.Value) / 2 - Margin * 2;
+                var radius = Math.Min(Gauge.Width.Value, Gauge.Height.Value) / 2 - Margin * 2;
 
                 if (TickPosition == GaugeTickPosition.Outside)
                 {
-                    radius -= TextMeasurer.TextWidth(Max.ToString(CultureInfo.InvariantCulture), 16);
+                    radius -= TextMeasurer.TextWidth(Max.ToString(), 16);
                 }
 
                 return radius * Height;
@@ -275,14 +262,8 @@ namespace Radzen.Blazor
         {
             get
             {
-                var gauge = Gauge;
-                if (gauge?.Width == null || gauge.Height == null)
-                {
-                    return new Point();
-                }
-
-                var x = X * gauge.Width;
-                var y = Y * gauge.Height;
+                var x = X * Gauge.Width;
+                var y = Y * Gauge.Height;
 
                 return new Point { X = x.Value, Y = y.Value };
             }
