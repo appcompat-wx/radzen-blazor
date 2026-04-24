@@ -5,15 +5,9 @@
 
 @{
     var points = new Dictionary<AppointmentData, double>();
-    var calendar = (Scheduler?.Culture ?? System.Globalization.CultureInfo.CurrentCulture).Calendar;
 
-    // StartDate can be shifted one extra week earlier to render a full header row.
-    // Derive the base year from the scheduler's CurrentDate + StartMonth instead of StartDate.AddDays(7).Year
-    // (which can incorrectly yield the previous year for StartMonth=January when the week starts on Sunday).
-    var startMonthNumber = (int)StartMonth + 1; // Month enum is 0-based
-    var year = Scheduler != null
-        ? calendar.GetYear(Scheduler.CurrentDate.Date) + (calendar.GetMonth(Scheduler.CurrentDate.Date) < startMonthNumber ? -1 : 0)
-        : calendar.GetYear(StartDate.AddDays(7));
+    // delaci check usage
+    var year = StartDate.AddDays(7).Year;
 
     DateTime date = StartDate.AddDays(7);
     DateTime realstart = StartDate;
@@ -27,28 +21,28 @@
     {
         int offSetMonth = ((month + (int)StartMonth) % 12) + 1;
         int curYear = year + (offSetMonth <= month ? 1 : 0);
-        realstart = new DateTime(curYear, offSetMonth, 1, calendar);
-        daysinmonth = calendar.GetDaysInMonth(curYear, offSetMonth);
-        date = realstart.StartOfMonth().StartOfWeek(Scheduler?.Culture ?? System.Globalization.CultureInfo.CurrentCulture);
+        realstart = new DateTime(curYear, offSetMonth, 1);
+        daysinmonth = DateTime.DaysInMonth(curYear, offSetMonth);
+        date = realstart.StartOfMonth().StartOfWeek();
         var currentDate = date;
         var currentMonth = month;
         var startMonth = realstart;
 
         <div class="rz-year-month rz-display-flex rz-flex-column rz-col-12 rz-col-sm-6 rz-col-md-4 rz-col-lg-3"
-                 tabindex="0" @onkeydown="@(args => OnKeyPress(args))" @onkeydown:preventDefault="@preventKeyPress" @onkeydown:stopPropagation="stopKeydownPropagation"
+                 tabindex="0" @onkeydown="@(args => OnKeyPress(args))" @onkeydown:preventDefault="@preventKeyPress" @onkeydown:stopPropagation
                  @onfocus=@(args => {CurrentDate = currentDate; CurrentMonth = currentMonth; })>
 
-            <div class="rz-slot-header rz-pb-2" role="button" tabindex="0" @onclick=@(args => OnMonthClick(startMonth)) @onkeydown="@(args => OnMonthHeaderKeyDown(args, startMonth))">
+            <div class="rz-slot-header rz-pb-2" @onclick=@(args => OnMonthClick(startMonth))>
                 <span class="rz-text-subtitle1">
-                    @realstart.ToString("MMMM yyyy", Scheduler?.Culture ?? System.Globalization.CultureInfo.CurrentCulture)
+                    @realstart.ToString("MMMM yyyy", Scheduler.Culture)
                 </span>
             </div>
 
             <div class="rz-view-header">
-                @for (var dateheader = StartDate; dateheader <= StartDate.EndOfWeek(Scheduler?.Culture ?? System.Globalization.CultureInfo.CurrentCulture); dateheader = dateheader.AddDays(1))
+                @for (var dateheader = StartDate; dateheader <= StartDate.EndOfWeek(); dateheader = dateheader.AddDays(1))
                 {
                     <div class="rz-slot-header">
-                        @dateheader.ToString("ddd", Scheduler?.Culture ?? System.Globalization.CultureInfo.CurrentCulture).Substring(0,1)
+                        @dateheader.ToString("ddd", Scheduler.Culture).Substring(0,1)
                     </div>
                 }
             </div>
@@ -63,11 +57,11 @@
                                 var day = date.AddDays((row * 7) + col);
                                 var appointments = AppointmentsInRange(day, day.AddDays(1));
                                 var excessCount = appointments.Count();
-                                string classname = $"rz-slot-title {(calendar.GetMonth(day) != offSetMonth ? "rz-other-month" : "")} {(excessCount > 0 ? "rz-has-appointments" : "")} {(day == CurrentDate && month == CurrentMonth ? " rz-state-focused" : "")}".Trim();
+                                string classname = $"rz-slot-title {(day.Month != offSetMonth ? "rz-other-month" : "")} {(excessCount > 0 ? "rz-has-appointments" : "")} {(day == CurrentDate && month == CurrentMonth ? " rz-state-focused" : "")}".Trim();
 
-                                    <div @onclick=@(args => OnListClick(day, appointments)) @attributes=@Attributes(day, "rz-slot") role="button" tabindex="0" @onkeydown="@(args => OnDayKeyDown(args, day, appointments))">
+                                    <div @onclick=@(args => OnListClick(day, appointments)) @attributes=@Attributes(day, "rz-slot")>
                                         <div class="@classname">
-                                            @calendar.GetDayOfMonth(day)
+                                            @day.Day
                                         </div>
                                     </div>
                                 }
@@ -79,6 +73,13 @@
     }
 </div>
 </div>
+<style>
+
+
+
+</style>
+
+
 
 @code {
     [Parameter]
@@ -94,35 +95,32 @@
     public int MaxAppointmentsInSlot { get; set; }
 
     [Parameter]
-    public string? MoreText { get; set; }
+    public string MoreText { get; set; }
 
     [Parameter]
-    public string? NoDayEventsText  { get; set; }
+    public string NoDayEventsText  { get; set; }
 
     [CascadingParameter]
-    public IScheduler? Scheduler { get; set; }
+    public IScheduler Scheduler { get; set; }
 
     [Parameter]
-    public IEnumerable<AppointmentData>? Appointments { get; set; }
+    public IEnumerable<AppointmentData> Appointments { get; set; }
 
     IDictionary<string, object> Attributes(DateTime start, string className)
     {
-        if (Scheduler == null)
-            return new Dictionary<string, object>();
-        var attributes = Scheduler.GetSlotAttributes(start, start.AddDays(1), () => AppointmentsInRange(start, start.AddDays(1)));
+        var attributes = Scheduler.GetSlotAttributes(start, start.AddDays(1));
         attributes["class"] = ClassList.Create(className).Add(attributes).ToString();
         return attributes;
     }
 
     async Task OnAppointmentClick(AppointmentData data)
     {
-        if (Scheduler != null)
-            await Scheduler.SelectAppointment(data);
+        await Scheduler.SelectAppointment(data);
     }
 
     private AppointmentData[] AppointmentsInRange(DateTime start, DateTime end)
     {
-        if (Appointments == null || Scheduler == null)
+        if (Appointments == null)
         {
             return Array.Empty<AppointmentData>();
         }
@@ -132,22 +130,11 @@
 
     async Task OnMonthClick(DateTime monthStart)
     {
-        if (Scheduler != null)
-            await Scheduler.SelectMonth(monthStart, AppointmentsInRange(monthStart, monthStart.EndOfMonth()));
-    }
-
-    async Task OnMonthHeaderKeyDown(KeyboardEventArgs args, DateTime monthStart)
-    {
-        var key = args.Code != null ? args.Code : args.Key;
-        if (key == "Enter" || key == "Space")
-        {
-            await OnMonthClick(monthStart);
-        }
+        await Scheduler.SelectMonth(monthStart, AppointmentsInRange(monthStart, monthStart.EndOfMonth()));
     }
 
     async Task OnListClick(DateTime date, IEnumerable<AppointmentData> appointments)
     {
-        if (Scheduler == null) return;
         bool preventDefault = await Scheduler.SelectSlot(date, date.AddDays(1), appointments);
 
         if(!preventDefault)
@@ -178,15 +165,6 @@
         }
     }
 
-    async Task OnDayKeyDown(KeyboardEventArgs args, DateTime day, IEnumerable<AppointmentData> appointments)
-    {
-        var key = args.Code != null ? args.Code : args.Key;
-        if (key == "Enter" || key == "Space")
-        {
-            await OnListClick(day, appointments);
-        }
-    }
-
     async Task OnListEventClick(AppointmentData data)
     {
         DialogService.Close();
@@ -197,8 +175,7 @@
     DateTime CurrentDate;
     int CurrentMonth;
 
-    bool preventKeyPress;
-    bool stopKeydownPropagation;
+    bool preventKeyPress = false;
 
     async Task OnKeyPress(KeyboardEventArgs args)
     {
@@ -209,19 +186,16 @@
             var days = key == "ArrowLeft" || key == "ArrowRight" ? 1 : 7;
             CurrentDate = CurrentDate.AddDays(key == "ArrowLeft" || key == "ArrowUp" ? -days : days);
             preventKeyPress = true;
-            stopKeydownPropagation = true;
         }
         else if (key == "Enter")
         {
             await OnListClick(CurrentDate, AppointmentsInRange(CurrentDate, CurrentDate.AddDays(1)));
 
             preventKeyPress = true;
-            stopKeydownPropagation = true;
         }
         else
         {
             preventKeyPress = false;
-            stopKeydownPropagation = false;
         }
     }
 }

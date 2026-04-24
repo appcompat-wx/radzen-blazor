@@ -1,4 +1,4 @@
-<div class=@Class @onclick=@Select @attributes=@Attributes role="option" aria-selected=@(IsSelected ? "true" : "false") tabindex="0" @onkeydown="OnKeyDown">
+<div class=@Class @onclick=@Select @attributes=@Attributes>
     @if (ChildContent != null)
     {
         @ChildContent(this)
@@ -10,46 +10,43 @@
 </div>
 @code {
     [Parameter]
-    public RenderFragment<EditorDropDownItem>? ChildContent { get; set; }
+    public RenderFragment<EditorDropDownItem> ChildContent { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
-    public IDictionary<string, object>? Attributes { get; set; }
+    public IDictionary<string, object> Attributes { get; set; }
 
     [CascadingParameter]
-    public EditorDropDown? DropDown { get; set; }
+    public EditorDropDown DropDown { get; set; }
 
     [Parameter]
-    public string? Text { get; set; }
+    public string Text { get; set; }
 
     [Parameter]
-    public string? Value { get; set; }
+    public string Value { get; set; }
 
     async Task Select()
     {
-        if (DropDown != null)
-            await DropDown.Select(this, true);
-    }
-
-    async Task OnKeyDown(KeyboardEventArgs args)
-    {
-        var key = args.Code != null ? args.Code : args.Key;
-        if (key == "Enter" || key == "Space")
-        {
-            await Select();
-        }
+        await DropDown.Select(this, true);
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        if (DropDown?.Value == Value && DropDown != null)
+        if (DropDown.Value == Value)
         {
             await DropDown.Select(this, false);
         }
     }
 
-    bool IsSelected => DropDown?.Value == Value;
-
-    string Class => ClassList.Create("rz-html-editor-dropdown-item")
-        .Add("rz-selected", IsSelected)
-        .ToString();
+    string Class
+    {
+        get
+        {
+            var classList = new List<string>() { "rz-html-editor-dropdown-item" };
+            if (DropDown.Value == Value)
+            {
+                classList.Add("rz-selected");
+            }
+            return string.Join(" ", classList);
+        }
+    }
 }

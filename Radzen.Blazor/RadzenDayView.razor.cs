@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using System;
-using System.Globalization;
 
 namespace Radzen.Blazor
 {
@@ -57,8 +56,7 @@ namespace Radzen.Blazor
         {
             get
             {
-                var culture = Scheduler?.Culture ?? CultureInfo.CurrentCulture;
-                return Scheduler?.CurrentDate.ToString(Scheduler.Culture.DateTimeFormat.ShortDatePattern ?? "d", culture) ?? "";
+                return Scheduler.CurrentDate.ToString(Scheduler.Culture.DateTimeFormat.ShortDatePattern);
             }
         }
 
@@ -67,7 +65,7 @@ namespace Radzen.Blazor
         {
             get
             {
-                return Scheduler?.CurrentDate.Date.Add(StartTime) ?? DateTime.Today.Add(StartTime);
+                return Scheduler.CurrentDate.Date.Add(StartTime);
             }
         }
 
@@ -76,20 +74,20 @@ namespace Radzen.Blazor
         {
             get
             {
-                return Scheduler?.CurrentDate.Date.Add(EndTime) ?? DateTime.Today.Add(EndTime);
+                return Scheduler.CurrentDate.Date.Add(EndTime);
             }
         }
 
         /// <inheritdoc />
         public override DateTime Next()
         {
-            return Scheduler?.CurrentDate.Date.AddDays(1) ?? DateTime.Today.AddDays(1);
+            return Scheduler.CurrentDate.Date.AddDays(1);
         }
 
         /// <inheritdoc />
         public override DateTime Prev()
         {
-            return Scheduler?.CurrentDate.Date.AddDays(-1) ?? DateTime.Today.AddDays(-1);
+            return Scheduler.CurrentDate.Date.AddDays(-1);
         }
     }
 }

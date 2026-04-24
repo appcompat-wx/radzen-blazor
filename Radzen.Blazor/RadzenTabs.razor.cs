@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System;
@@ -9,109 +9,67 @@ using System.Threading.Tasks;
 namespace Radzen.Blazor
 {
     /// <summary>
-    /// A tabbed interface component that organizes content into multiple panels with clickable tabs for navigation.
-    /// RadzenTabs allows users to switch between different views or sections without navigating away from the page.
-    /// Provides a container for RadzenTabsItem components, each representing one tab and its associated content panel.
-    /// Supports tab positioning at Top, Bottom, Left, Right, TopRight, or BottomRight, server-side rendering (default) or client-side rendering for improved interactivity,
-    /// programmatic selection via SelectedIndex with two-way binding, Change event when tabs are switched, dynamic tab addition/removal using AddTab() and RemoveItem(),
-    /// keyboard navigation (Arrow keys, Home, End, Space, Enter) for accessibility, and disabled tabs to prevent selection.
-    /// Use Server render mode for standard Blazor rendering, or Client mode for faster tab switching with JavaScript.
+    /// RadzenTabs component.
     /// </summary>
     /// <example>
-    /// Basic tabs with server-side rendering:
     /// <code>
-    /// &lt;RadzenTabs&gt;
+    /// &lt;RadzenTabs RenderMode="TabRenderMode.Client" Change=@(args => Console.WriteLine($"Selected index is: {args}"))&gt;
     ///     &lt;Tabs&gt;
     ///         &lt;RadzenTabsItem Text="Orders"&gt;
-    ///             Order list and details...
+    ///             Details for Orders
     ///         &lt;/RadzenTabsItem&gt;
-    ///         &lt;RadzenTabsItem Text="Customers"&gt;
-    ///             Customer information...
+    ///         &lt;RadzenTabsItem Text="Employees"&gt;
+    ///             Details for Employees
     ///         &lt;/RadzenTabsItem&gt;
     ///     &lt;/Tabs&gt;
     /// &lt;/RadzenTabs&gt;
-    /// </code>
-    /// Tabs with client-side rendering and change event:
-    /// <code>
-    /// &lt;RadzenTabs RenderMode="TabRenderMode.Client" @bind-SelectedIndex=@selectedTab Change=@OnTabChange&gt;
-    ///     &lt;Tabs&gt;
-    ///         &lt;RadzenTabsItem Text="Tab 1" Icon="home"&gt;Content 1&lt;/RadzenTabsItem&gt;
-    ///         &lt;RadzenTabsItem Text="Tab 2" Icon="settings" Disabled="true"&gt;Content 2&lt;/RadzenTabsItem&gt;
-    ///     &lt;/Tabs&gt;
-    /// &lt;/RadzenTabs&gt;
-    /// @code {
-    ///     int selectedTab = 0;
-    ///     void OnTabChange(int index) => Console.WriteLine($"Selected tab: {index}");
-    /// }
     /// </code>
     /// </example>
     public partial class RadzenTabs : RadzenComponent
     {
         /// <summary>
-        /// Gets or sets the rendering mode that determines how tab content is rendered and switched.
-        /// Server mode re-renders on the server when tabs change, while Client mode uses JavaScript for instant switching.
+        /// Gets or sets the render mode.
         /// </summary>
-        /// <value>The tab render mode. Default is <see cref="TabRenderMode.Server"/>.</value>
+        /// <value>The render mode.</value>
         [Parameter]
         public TabRenderMode RenderMode { get; set; } = TabRenderMode.Server;
 
         /// <summary>
-        /// Gets or sets the visual position of the tab headers relative to the content panels.
-        /// Controls the layout direction and can position tabs at Top, Bottom, Left, Right, TopRight, or BottomRight of the content.
+        /// Gets or sets the tab position.
         /// </summary>
-        /// <value>The tab position. Default is <see cref="TabPosition.Top"/>.</value>
+        /// <value>The tab position.</value>
         [Parameter]
         public TabPosition TabPosition { get; set; } = TabPosition.Top;
 
         /// <summary>
-        /// Gets or sets the zero-based index of the currently selected tab.
-        /// Use with @bind-SelectedIndex for two-way binding to track and control the active tab.
-        /// Set to -1 for no selection (though typically the first tab is selected automatically).
+        /// Gets or sets the selected index.
         /// </summary>
-        /// <value>The selected tab index. Default is -1 (auto-select first tab).</value>
+        /// <value>The selected index.</value>
         [Parameter]
         public int SelectedIndex { get; set; } = -1;
 
         private int selectedIndex = -1;
 
         /// <summary>
-        /// Gets or sets the callback invoked when the selected tab index changes.
-        /// Used for two-way binding with @bind-SelectedIndex.
+        /// Gets or sets the selected index changed callback.
         /// </summary>
-        /// <value>The event callback receiving the new selected index.</value>
+        /// <value>The selected index changed callback.</value>
         [Parameter]
         public EventCallback<int> SelectedIndexChanged { get; set; }
 
         /// <summary>
-        /// Gets or sets the callback invoked when the user switches to a different tab.
-        /// Provides the index of the newly selected tab. Use this for side effects or logging.
+        /// Gets or sets the change callback.
         /// </summary>
-        /// <value>The change event callback receiving the selected tab index.</value>
+        /// <value>The change callback.</value>
         [Parameter]
         public EventCallback<int> Change { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the user can reorder tabs by dragging and dropping.
-        /// When enabled, tab headers become draggable and can be rearranged by the user.
+        /// Gets or sets the tabs.
         /// </summary>
-        /// <value><c>true</c> if tab reordering is allowed; otherwise, <c>false</c>. Default is <c>false</c>.</value>
+        /// <value>The tabs.</value>
         [Parameter]
-        public bool AllowReorder { get; set; }
-
-        /// <summary>
-        /// Gets or sets the callback invoked when tabs are reordered via drag and drop.
-        /// Provides a <see cref="TabsReorderEventArgs"/> with the old and new index of the moved tab.
-        /// </summary>
-        [Parameter]
-        public EventCallback<TabsReorderEventArgs> Reorder { get; set; }
-
-        /// <summary>
-        /// Gets or sets the render fragment containing RadzenTabsItem components that define the tabs.
-        /// Each RadzenTabsItem represents one tab with its header and content.
-        /// </summary>
-        /// <value>The tabs render fragment containing tab definitions.</value>
-        [Parameter]
-        public RenderFragment? Tabs { get; set; }
+        public RenderFragment Tabs { get; set; }
 
         List<RadzenTabsItem> tabs = new List<RadzenTabsItem>();
 
@@ -121,7 +79,6 @@ namespace Radzen.Blazor
         /// <param name="tab">The tab.</param>
         public async Task AddTab(RadzenTabsItem tab)
         {
-            ArgumentNullException.ThrowIfNull(tab);
             if (!tabs.Contains(tab))
             {
                 tabs.Add(tab);
@@ -142,7 +99,7 @@ namespace Radzen.Blazor
             }
         }
 
-        internal string? Id
+        internal string Id
         {
             get
             {
@@ -154,7 +111,7 @@ namespace Radzen.Blazor
         /// Gets the currently selected RadzenTabsItem based on the selectedIndex.
         /// </summary>
 
-        public RadzenTabsItem? SelectedTab
+        public RadzenTabsItem SelectedTab
         {
             get
             {
@@ -168,8 +125,10 @@ namespace Radzen.Blazor
         /// <param name="item">The item.</param>
         public void RemoveItem(RadzenTabsItem item)
         {
-            if (tabs.Remove(item))
+            if (tabs.Contains(item))
             {
+                tabs.Remove(item);
+
                 if (!disposed)
                 {
                     try { InvokeAsync(StateHasChanged); } catch { }
@@ -206,8 +165,6 @@ namespace Radzen.Blazor
                 await Change.InvokeAsync(selectedIndex);
 
                 await SelectedIndexChanged.InvokeAsync(selectedIndex);
-
-                await Element.FocusAsync(preventScroll: true);
             }
 
             StateHasChanged();
@@ -278,7 +235,7 @@ namespace Radzen.Blazor
         /// <inheritdoc />
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (JSRuntime != null && RenderMode == TabRenderMode.Client && previousSelectedIndex != selectedIndex)
+            if (RenderMode == TabRenderMode.Client && previousSelectedIndex != selectedIndex)
             {
                 previousSelectedIndex = selectedIndex;
                 await JSRuntime.InvokeVoidAsync("Radzen.selectTab", $"{GetId()}-tabpanel-{selectedIndex}", selectedIndex);
@@ -299,7 +256,7 @@ namespace Radzen.Blazor
         internal async System.Threading.Tasks.Task SelectTabOnClient(RadzenTabsItem tab)
         {
             var index = IndexOf(tab);
-            if (index != selectedIndex && JSRuntime != null)
+            if (index != selectedIndex)
             {
                 selectedIndex = index;
                 previousSelectedIndex = selectedIndex;
@@ -311,31 +268,18 @@ namespace Radzen.Blazor
                 await Change.InvokeAsync(selectedIndex);
                 await SelectedIndexChanged.InvokeAsync(selectedIndex);
                 shouldRender = true;
-
-                await Element.FocusAsync(preventScroll: true);
             }
         }
 
-        internal RadzenTabsItem? FirstVisibleTab()
+        internal RadzenTabsItem FirstVisibleTab()
         {
-            return tabs?.Where(t => t.Visible).FirstOrDefault();
+            return tabs.Where(t => t.Visible).FirstOrDefault();
         }
 
         internal int focusedIndex = -1;
         bool preventKeyPress = true;
-        bool stopKeydownPropagation;
-
-        bool stopGuardKeydownPropagation = true;
-        void OnGuardKeyDown(KeyboardEventArgs args)
-        {
-            var key = args.Code ?? args.Key;
-            stopGuardKeydownPropagation = key != "Escape";
-        }
-
         async Task OnKeyPress(KeyboardEventArgs args)
         {
-            shouldRender = true;
-
             var key = args.Code != null ? args.Code : args.Key;
 
             var item = tabs.ElementAtOrDefault(focusedIndex) ?? tabs.FirstOrDefault();
@@ -345,21 +289,18 @@ namespace Radzen.Blazor
             if (key == "ArrowLeft" || key == "ArrowRight")
             {
                 preventKeyPress = true;
-                stopKeydownPropagation = true;
 
                 focusedIndex = Math.Clamp(focusedIndex + (key == "ArrowLeft" ? -1 : 1), 0, tabs.Where(t => HasInvisibleBefore(item) ? true : t.Visible).Count() - 1);
             }
             else if (key == "Home" || key == "End")
             {
                 preventKeyPress = true;
-                stopKeydownPropagation = true;
 
                 focusedIndex = key == "Home" ? 0 : tabs.Where(t => HasInvisibleBefore(item) ? true : t.Visible).Count() - 1;
             }
             else if (key == "Space" || key == "Enter")
             {
                 preventKeyPress = true;
-                stopKeydownPropagation = true;
 
                 if (focusedIndex >= 0 && focusedIndex < tabs.Where(t => HasInvisibleBefore(item) ? true : t.Visible).Count())
                 {
@@ -368,9 +309,7 @@ namespace Radzen.Blazor
             }
             else
             {
-                shouldRender = preventKeyPress || stopKeydownPropagation;
                 preventKeyPress = false;
-                stopKeydownPropagation = false;
             }
         }
         internal bool IsFocused(RadzenTabsItem item)
@@ -381,73 +320,6 @@ namespace Radzen.Blazor
         internal bool HasInvisibleBefore(RadzenTabsItem item)
         {
             return tabs.Take(tabs.IndexOf(item)).Any(t => !t.Visible);
-        }
-
-        internal RadzenTabsItem? draggedTab;
-        internal RadzenTabsItem? dragOverTab;
-
-        internal void OnTabDragStart(RadzenTabsItem tab)
-        {
-            draggedTab = tab;
-        }
-
-        internal void OnTabDragOver(RadzenTabsItem tab)
-        {
-            dragOverTab = tab;
-        }
-
-        internal void OnTabDragEnd()
-        {
-            draggedTab = null;
-            dragOverTab = null;
-        }
-
-        internal async Task OnTabDrop(RadzenTabsItem tab)
-        {
-            if (draggedTab == null || draggedTab == tab)
-            {
-                return;
-            }
-
-            var oldIndex = tabs.IndexOf(draggedTab);
-            var newIndex = tabs.IndexOf(tab);
-
-            if (oldIndex < 0 || newIndex < 0)
-            {
-                return;
-            }
-
-            tabs.RemoveAt(oldIndex);
-            tabs.Insert(newIndex, draggedTab);
-
-            // Adjust selectedIndex to follow the selected tab
-            if (selectedIndex == oldIndex)
-            {
-                selectedIndex = newIndex;
-            }
-            else if (oldIndex < selectedIndex && newIndex >= selectedIndex)
-            {
-                selectedIndex--;
-            }
-            else if (oldIndex > selectedIndex && newIndex <= selectedIndex)
-            {
-                selectedIndex++;
-            }
-
-            SetFocusedIndex();
-
-            await Reorder.InvokeAsync(new TabsReorderEventArgs { OldIndex = oldIndex, NewIndex = newIndex });
-            await SelectedIndexChanged.InvokeAsync(selectedIndex);
-
-            draggedTab = null;
-            dragOverTab = null;
-
-            StateHasChanged();
-        }
-
-        internal bool IsDragOver(RadzenTabsItem tab)
-        {
-            return dragOverTab == tab && draggedTab != tab;
         }
     }
 }

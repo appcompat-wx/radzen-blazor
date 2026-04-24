@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
 
 namespace Radzen.Blazor.Rendering
@@ -52,7 +51,7 @@ namespace Radzen.Blazor.Rendering
             /// <summary>
             /// The point
             /// </summary>
-            public SplinePoint? Point;
+            public SplinePoint Point;
             /// <summary>
             /// The delta
             /// </summary>
@@ -72,7 +71,7 @@ namespace Radzen.Blazor.Rendering
         {
             var pointsWithTangents = points.Select(point => new PointWithTanget { Point = point, Delta = 0, MK = 0 }).ToList();
 
-            var pointCount = pointsWithTangents.Count;
+            var pointCount = pointsWithTangents.Count();
 
             for (var i = 0; i < pointCount; i++)
             {
@@ -81,7 +80,7 @@ namespace Radzen.Blazor.Rendering
                 var previousPoint = i > 0 ? pointsWithTangents[i - 1] : null;
                 var nextPoint = i < pointCount - 1 ? pointsWithTangents[i + 1] : null;
 
-                if (nextPoint != null && nextPoint.Point != null && currentPoint.Point != null)
+                if (nextPoint != null)
                 {
                     var slopeDeltaX = (nextPoint.Point.X - currentPoint.Point.X);
 
@@ -138,14 +137,14 @@ namespace Radzen.Blazor.Rendering
                 var previousPoint = i > 0 ? pointsWithTangents[i - 1] : null;
                 var nextPoint = i < pointCount - 1 ? pointsWithTangents[i + 1] : null;
 
-                if (previousPoint != null && previousPoint.Point != null && currentPoint.Point != null)
+                if (previousPoint != null)
                 {
                     var deltaX = (currentPoint.Point.X - previousPoint.Point.X) / 3;
                     currentPoint.Point.ControlPointPreviousX = currentPoint.Point.X - deltaX;
                     currentPoint.Point.ControlPointPreviousY = currentPoint.Point.Y - deltaX * currentPoint.MK;
                 }
 
-                if (nextPoint != null && nextPoint.Point != null && currentPoint.Point != null)
+                if (nextPoint != null)
                 {
                     var deltaX = (nextPoint.Point.X - currentPoint.Point.X) / 3;
                     currentPoint.Point.ControlPointNextX = currentPoint.Point.X + deltaX;
@@ -165,60 +164,22 @@ namespace Radzen.Blazor.Rendering
         {
             var path = new StringBuilder();
 
-            var allPoints = data.ToList();
+            var points = data.Select(item => new SplinePoint { X = item.X, Y = item.Y }).ToList();
 
-            // Split into segments separated by NaN values
-            var segment = new List<SplinePoint>();
-
-            foreach (var item in allPoints)
-            {
-                if (double.IsNaN(item.X) || double.IsNaN(item.Y))
-                {
-                    if (segment.Count > 0)
-                    {
-                        AppendSegment(path, segment);
-                        segment.Clear();
-                    }
-                    continue;
-                }
-
-                segment.Add(new SplinePoint { X = item.X, Y = item.Y });
-            }
-
-            if (segment.Count > 0)
-            {
-                AppendSegment(path, segment);
-            }
-
-            return path.ToString();
-        }
-
-        private void AppendSegment(StringBuilder path, IList<SplinePoint> points)
-        {
-            if (points.Count == 0) return;
-
-            if (path.Length > 0)
-            {
-                path.Append("M ");
-            }
-
-            path.Append(CultureInfo.InvariantCulture, $"{points[0].X.ToInvariantString()} {points[0].Y.ToInvariantString()} ");
-
-            if (points.Count == 1) return;
+            path.Append($"{points[0].X.ToInvariantString()} {points[0].Y.ToInvariantString()} ");
 
             var pointsWithTangents = CurveMonotone(points);
-            var count = pointsWithTangents.Count;
+            var count = pointsWithTangents.Count();
 
             for (var i = 1; i < count; i++)
             {
                 var prev = pointsWithTangents[i - 1].Point;
                 var point = pointsWithTangents[i].Point;
 
-                if (prev != null && point != null)
-                {
-                    path.Append(CultureInfo.InvariantCulture, $"C {prev.ControlPointNextX.ToInvariantString()}, {prev.ControlPointNextY.ToInvariantString()} {point.ControlPointPreviousX.ToInvariantString()}, {point.ControlPointPreviousY.ToInvariantString()} {point.X.ToInvariantString()}, {point.Y.ToInvariantString()}");
-                }
+                path.Append($"C {prev.ControlPointNextX.ToInvariantString()}, {prev.ControlPointNextY.ToInvariantString()} {point.ControlPointPreviousX.ToInvariantString()}, {point.ControlPointPreviousY.ToInvariantString()} {point.X.ToInvariantString()}, {point.Y.ToInvariantString()}");
             }
+
+            return path.ToString();
         }
     }
 }

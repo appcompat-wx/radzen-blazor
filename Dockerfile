@@ -1,47 +1,31 @@
-# =============================
-# BUILD STAGE
-# =============================
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-WORKDIR /src
+# syntax=docker/dockerfile:1
+FROM mono:latest
 
-# Copy project files first for better caching
-COPY Radzen.Blazor/*.csproj Radzen.Blazor/
-COPY Radzen.Blazor.Api/*.csproj Radzen.Blazor.Api/
-COPY Radzen.Blazor.Api.Generator/*.csproj Radzen.Blazor.Api.Generator/
-COPY RadzenBlazorDemos/*.csproj RadzenBlazorDemos/
-COPY RadzenBlazorDemos.Host/*.csproj RadzenBlazorDemos.Host/
-COPY RadzenBlazorDemos.Tools/*.csproj RadzenBlazorDemos.Tools/
+ENV DOCFX_VER 2.58.4
 
-# Restore dependencies (Host + Tools + API page generator)
-RUN dotnet restore RadzenBlazorDemos.Host/RadzenBlazorDemos.Host.csproj \
- && dotnet restore RadzenBlazorDemos.Tools/RadzenBlazorDemos.Tools.csproj \
- && dotnet restore Radzen.Blazor.Api.Generator/Radzen.Blazor.Api.Generator.csproj
+RUN apt-get update && apt-get install unzip wget git -y && wget -q -P /tmp https://github.com/dotnet/docfx/releases/download/v${DOCFX_VER}/docfx.zip && \
+    mkdir -p /opt/docfx && \
+    unzip /tmp/docfx.zip -d /opt/docfx && \
+    echo '#!/bin/bash\nmono /opt/docfx/docfx.exe $@' > /usr/bin/docfx && \
+    chmod +x /usr/bin/docfx && \
+    rm -rf /tmp/*
 
-# Copy full source after restore layer
-COPY . .
-
-# Pre-generate API reference pages (must exist on disk before publish evaluates globs)
-RUN dotnet build Radzen.Blazor/Radzen.Blazor.csproj -c Release \
- && dotnet run --project Radzen.Blazor.Api.Generator -- \
-      Radzen.Blazor/bin/Release/net10.0/Radzen.Blazor.dll \
-      Radzen.Blazor/bin/Release/net10.0/Radzen.Blazor.xml \
-      Radzen.Blazor.Api/Generated/Pages
-
-# Publish the Blazor host app (generated pages are now on disk for the SDK to discover)
-WORKDIR /src/RadzenBlazorDemos.Host
-RUN dotnet publish -c Release -o /app/out
-
-
-# =============================
-# RUNTIME STAGE
-# =============================
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+COPY Radzen.Blazor /app/Radzen.Blazor
+COPY Radzen.DocFX /app/DocFX
+COPY RadzenBlazorDemos /app/RadzenBlazorDemos
+COPY RadzenBlazorDemos.Host /app/RadzenBlazorDemos.Host
 WORKDIR /app
+RUN docfx DocFX/docfx.json
 
-# Copy only published output
-COPY --from=build /app/out ./
+FROM mcr.microsoft.com/dotnet/sdk:9.0
 
-# Set runtime URL
-ENV ASPNETCORE_URLS=http://+:5000
+COPY --from=0 /app/RadzenBlazorDemos.Host /app/RadzenBlazorDemos.Host
+COPY --from=0 /app/RadzenBlazorDemos /app/RadzenBlazorDemos
+
+WORKDIR /app/RadzenBlazorDemos.Host
+RUN dotnet publish -c Release -o out
+
+ENV ASPNETCORE_URLS http://*:5000
+WORKDIR /app/RadzenBlazorDemos.Host/out
 
 ENTRYPOINT ["dotnet", "RadzenBlazorDemos.Host.dll"]

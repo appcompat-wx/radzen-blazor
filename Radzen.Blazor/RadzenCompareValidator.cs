@@ -6,44 +6,39 @@ using Microsoft.AspNetCore.Components.Forms;
 namespace Radzen.Blazor
 {
     /// <summary>
-    /// Defines the type of comparison operation to perform when validating values.
-    /// Used by <see cref="RadzenCompareValidator"/> to determine how to compare the component value against the target value.
+    /// Specifies the comparison operation used by a <see cref="RadzenCompareValidator" />
     /// </summary>
     public enum CompareOperator
     {
         /// <summary>
-        /// Validates that values are equal. Useful for password confirmation fields.
+        /// Check if values are equal.
         /// </summary>
         Equal,
         /// <summary>
-        /// Validates that the component value is greater than the comparison value. Useful for numeric range validation.
+        /// Check if a value is greater than another value.
         /// </summary>
         GreaterThan,
         /// <summary>
-        /// Validates that the component value is greater than or equal to the comparison value.
+        /// Check if a value is greater than or equal to another value.
         /// </summary>
         GreaterThanEqual,
         /// <summary>
-        /// Validates that the component value is less than the comparison value.
+        /// Check if a value is less than another value.
         /// </summary>
         LessThan,
         /// <summary>
-        /// Validates that the component value is less than or equal to the comparison value.
+        /// Check if a value is less than or equal to another value.
         /// </summary>
         LessThanEqual,
         /// <summary>
-        /// Validates that values are not equal. Useful for ensuring a value differs from a specific value.
+        /// Check if values are not equal.
         /// </summary>
         NotEqual,
     }
 
     /// <summary>
-    /// A validator component that compares a form input's value against another value or another component's value using a specified comparison operator.
-    /// RadzenCompareValidator is commonly used for password confirmation, numeric range validation, or ensuring field values match expected criteria.
-    /// Must be placed inside a <see cref="RadzenTemplateForm{TItem}"/> and associated with a named input component.
-    /// Supports various comparison operations (Equal, NotEqual, GreaterThan, LessThan, etc.) via the Operator property.
-    /// For password confirmation scenarios, set the Value property to the password field and the Component to the confirmation field name.
-    /// Can react to changes in the comparison value by setting ValidateOnComponentValueChange to true (default).
+    /// A validator component which compares a component value with a specified value.
+    /// Must be placed inside a <see cref="RadzenTemplateForm{TItem}" />
     /// </summary>
     /// <example>
     /// <code>
@@ -75,7 +70,7 @@ namespace Radzen.Blazor
         /// Specifies the value to compare with.
         /// </summary>
         [Parameter]
-        public object? Value { get; set; }
+        public object Value { get; set; }
 
         /// <summary>
         /// Specifies the comparison operator. Set to <c>CompareOperator.Equal</c> by default.
@@ -90,24 +85,29 @@ namespace Radzen.Blazor
         [Parameter]
         public virtual bool ValidateOnComponentValueChange { get; set; } = true;
 
-        private int Compare(object? componentValue) => componentValue switch
+        private int Compare(object componentValue)
         {
-            string stringValue => string.Compare(stringValue, Value as string, StringComparison.Ordinal),
-            IComparable comparable => comparable.CompareTo(Value),
-            _ => 0,
-        };
+            switch (componentValue)
+            {
+                case String stringValue:
+                    return String.Compare(stringValue, (string)Value, false, Culture);
+                case IComparable comparable:
+                    return comparable.CompareTo(Value);
+                default:
+                    return 0;
+            }
+        }
 
         /// <inheritdoc />
         public override async Task SetParametersAsync(ParameterView parameters)
         {
             var valueChanged = parameters.DidParameterChange(nameof(Value), Value);
-            var visibleChanged = parameters.DidParameterChange(nameof(Visible), Visible);
 
             await base.SetParametersAsync(parameters);
 
-            if (ValidateOnComponentValueChange && (valueChanged || visibleChanged) && !firstRender && Visible)
+            if (ValidateOnComponentValueChange && valueChanged && !firstRender && Visible)
             {
-                var component = Form?.FindComponent(Component);
+                var component = Form.FindComponent(Component);
                 if (component != null && component.FieldIdentifier.FieldName != null)
                 {
                     IsValid = Validate(component);
@@ -135,21 +135,25 @@ namespace Radzen.Blazor
         /// <inheritdoc />
         protected override bool Validate(IRadzenFormComponent component)
         {
-            ArgumentNullException.ThrowIfNull(component);
-            var componentValue = component.GetValue();
-            var compareResult = Compare(componentValue);
+            var compareResult = Compare(component.GetValue());
 
-            return Operator switch
+            switch (Operator)
             {
-                CompareOperator.Equal => compareResult == 0,
-                CompareOperator.NotEqual => compareResult != 0,
-                CompareOperator.GreaterThan => compareResult > 0,
-                CompareOperator.GreaterThanEqual => compareResult >= 0,
-                CompareOperator.LessThan => compareResult < 0,
-                CompareOperator.LessThanEqual => compareResult <= 0,
-                _ => true,
-            };
-
+                case CompareOperator.Equal:
+                    return compareResult == 0;
+                case CompareOperator.NotEqual:
+                    return compareResult != 0;
+                case CompareOperator.GreaterThan:
+                    return compareResult > 0;
+                case CompareOperator.GreaterThanEqual:
+                    return compareResult >= 0;
+                case CompareOperator.LessThan:
+                    return compareResult < 0;
+                case CompareOperator.LessThanEqual:
+                    return compareResult <= 0;
+                default:
+                    return true;
+            }
         }
     }
 }

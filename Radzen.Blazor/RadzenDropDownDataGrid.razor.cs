@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System;
@@ -10,111 +10,43 @@ using System.Threading.Tasks;
 namespace Radzen.Blazor
 {
     /// <summary>
-    /// A dropdown component that displays items in a DataGrid within the popup instead of a simple list.
-    /// RadzenDropDownDataGrid combines dropdown selection with grid features like multiple columns, sorting, filtering, and paging.
-    /// Ideal when dropdown items have multiple properties you want to display in columns. Instead of showing just one property per item, the grid popup can display multiple columns.
-    /// Perfect for scenarios like selecting products with columns for Name/SKU/Price/Stock, choosing employees with Name/Department/Email columns, or picking customers with Company/Contact/Location columns.
-    /// Features full DataGrid with columns/sorting/filtering in the dropdown popup, column definition using RadzenDropDownDataGridColumn, built-in column filtering in the grid,
-    /// multiple selection with checkboxes, optional paging for large datasets, and custom column templates for rich item display.
-    /// Define columns as child components to specify what data to show in the grid popup.
+    /// RadzenDropDownDataGrid component.
     /// </summary>
-    /// <typeparam name="TValue">The type of the selected value. Can be a single value or IEnumerable for multiple selection.</typeparam>
+    /// <typeparam name="TValue">The type of the t value.</typeparam>
     /// <example>
-    /// Basic dropdown with grid:
     /// <code>
-    /// &lt;RadzenDropDownDataGrid @bind-Value=@selectedCustomerId TValue="int" 
-    ///                          Data=@customers ValueProperty="CustomerId"&gt;
-    ///     &lt;Columns&gt;
-    ///         &lt;RadzenDropDownDataGridColumn Property="CompanyName" Title="Company" /&gt;
-    ///         &lt;RadzenDropDownDataGridColumn Property="ContactName" Title="Contact" /&gt;
-    ///         &lt;RadzenDropDownDataGridColumn Property="City" Title="City" /&gt;
-    ///     &lt;/Columns&gt;
-    /// &lt;/RadzenDropDownDataGrid&gt;
-    /// </code>
-    /// Multiple selection with filtering:
-    /// <code>
-    /// &lt;RadzenDropDownDataGrid @bind-Value=@selectedIds TValue="IEnumerable&lt;int&gt;" 
-    ///                          Multiple="true" AllowFiltering="true" Data=@products&gt;
-    ///     &lt;Columns&gt;
-    ///         &lt;RadzenDropDownDataGridColumn Property="Name" Title="Product" /&gt;
-    ///         &lt;RadzenDropDownDataGridColumn Property="Price" Title="Price" FormatString="{0:C}" /&gt;
-    ///     &lt;/Columns&gt;
-    /// &lt;/RadzenDropDownDataGrid&gt;
+    /// &lt;RadzenDropDownDataGrid @bind-Value=@customerID TValue="string" Data=@customers TextProperty="CompanyName" ValueProperty="CustomerID" Change=@(args => Console.WriteLine($"Selected CustomerID: {args}")) /&gt;
     /// </code>
     /// </example>
     public partial class RadzenDropDownDataGrid<TValue> : DropDownBase<TValue>
     {
-        bool stopKeydownPropagation = true;
-        void OnGuardKeyDown(KeyboardEventArgs args)
-        {
-            var key = args.Code ?? args.Key;
-            stopKeydownPropagation = key != "Escape";
-        }
-
         /// <summary>
         /// Specifies additional custom attributes that will be rendered by the input.
         /// </summary>
         /// <value>The attributes.</value>
         [Parameter]
-        public IReadOnlyDictionary<string, object>? InputAttributes { get; set; }
+        public IReadOnlyDictionary<string, object> InputAttributes { get; set; }
 
         /// <summary>
         /// Gets or sets the row render callback. Use it to set row attributes.
         /// </summary>
         /// <value>The row render callback.</value>
         [Parameter]
-        public Action<RowRenderEventArgs<object>>? RowRender { get; set; }
+        public Action<RowRenderEventArgs<object>> RowRender { get; set; }
 
         /// <summary>
         /// Gets or sets the cell render callback. Use it to set cell attributes.
         /// </summary>
         /// <value>The cell render callback.</value>
         [Parameter]
-        public Action<DataGridCellRenderEventArgs<object>>? CellRender { get; set; }
-
-        /// <summary>
-        /// Gets or sets the load child data callback.
-        /// </summary>
-        /// <value>The load child data callback.</value>
-        [Parameter]
-        public EventCallback<Radzen.DataGridLoadChildDataEventArgs<object>> LoadChildData { get; set; }
-
-        /// <summary>
-        /// Gets or sets the column resized callback.
-        /// </summary>
-        /// <value>The column resized callback.</value>
-        [Parameter]
-        public EventCallback<DataGridColumnResizedEventArgs<object>> ColumnResized { get; set; }
-
-        /// <summary>
-        /// Gets or sets the column reordering callback.
-        /// </summary>
-        /// <value>The column reordering callback.</value>
-        [Parameter]
-        public EventCallback<DataGridColumnReorderingEventArgs<object>> ColumnReordering { get; set; }
-
-        /// <summary>
-        /// Gets or sets the column reordered callback.
-        /// </summary>
-        /// <value>The column reordered callback.</value>
-        [Parameter]
-        public EventCallback<DataGridColumnReorderedEventArgs<object>> ColumnReordered { get; set; }
-
-        /// <summary>
-        /// Gets or sets the callback invoked when the user right-clicks the component.
-        /// Commonly used with <see cref="ContextMenuService"/> to display context menus.
-        /// Receives mouse event arguments containing click position.
-        /// </summary>
-        /// <value>The context menu (right-click) event callback.</value>
-        [Parameter]
-        public EventCallback<Microsoft.AspNetCore.Components.Web.MouseEventArgs> ContextMenuDataGrid { get; set; }
+        public Action<DataGridCellRenderEventArgs<object>> CellRender { get; set; }
 
         /// <summary>
         /// Gets or sets the footer template.
         /// </summary>
         /// <value>The footer template.</value>
         [Parameter]
-        public RenderFragment? FooterTemplate { get; set; }
+        public RenderFragment FooterTemplate { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the selected items will be displayed as chips. Set to <c>false</c> by default.
@@ -123,13 +55,6 @@ namespace Radzen.Blazor
         /// <value><c>true</c> to display the selected items as chips; otherwise, <c>false</c>.</value>
         [Parameter]
         public bool Chips { get; set; }
-
-        /// <summary>
-        /// Gets or sets the grid lines.
-        /// </summary>
-        /// <value>The grid lines.</value>
-        [Parameter]
-        public DataGridGridLines GridLines { get; set; } = DataGridGridLines.Default;
 
         /// <summary>
         /// Gets or sets the Popup style.
@@ -154,8 +79,7 @@ namespace Radzen.Blazor
         /// </summary>
         protected virtual void OnRowRender(RowRenderEventArgs<object> args)
         {
-            ArgumentNullException.ThrowIfNull(args);
-            if (disabledPropertyGetter != null && args.Data != null && disabledPropertyGetter(args.Data) as bool? == true)
+            if (disabledPropertyGetter != null && disabledPropertyGetter(args.Data) as bool? == true)
             {
                 args.Attributes.Add("class", "rz-data-row rz-state-disabled");
             }
@@ -173,19 +97,11 @@ namespace Radzen.Blazor
         [Parameter]
         public bool OpenOnFocus { get; set; }
 
-        /// <summary>
-        /// Gets or sets the keyboard key that triggers opening the popup when <see cref="OpenOnFocus"/> is enabled.
-        /// Default is <c>"Enter"</c>.
-        /// </summary>
-        /// <value>The keyboard key used to open the popup.</value>
-        [Parameter]
-        public string OpenPopupKey { get; set; } = "Enter";
-
-        private async Task OnFocus()
+        private async Task OnFocus(Microsoft.AspNetCore.Components.Web.FocusEventArgs args)
         {
             if (OpenOnFocus)
             {
-                await OpenPopup(OpenPopupKey, false);
+                await OpenPopup("Enter", false);
             }
         }
 
@@ -200,54 +116,22 @@ namespace Radzen.Blazor
             if (Disabled)
                 return;
 
-            if (IsVirtualizationAllowed() && grid != null)
+            if (IsVirtualizationAllowed())
             {
                 await grid.RefreshDataAsync();
             }
 
-            isPopupOpen = true;
+            await JSRuntime.InvokeVoidAsync(OpenOnFocus ? "Radzen.openPopup" : "Radzen.togglePopup", Element, PopupID, true);
 
-            if (JSRuntime != null)
+            if (FocusFilterOnPopup)
             {
-                if (OpenOnFocus)
-                {
-                    await JSRuntime.InvokeVoidAsync("Radzen.openPopup", Element, PopupID, true, null, null, null, Reference, nameof(OnClose));
-                }
-                else
-                {
-                    await JSRuntime.InvokeVoidAsync("Radzen.togglePopup", Element, PopupID, true, Reference, nameof(OnClose));
-                }
-
-                if (FocusFilterOnPopup)
-                {
-                    await JSRuntime.InvokeVoidAsync("Radzen.focusElement", isFilter ? UniqueID : SearchID);
-                }
+                await JSRuntime.InvokeVoidAsync("Radzen.focusElement", isFilter ? UniqueID : SearchID);
             }
 
-            if (list != null && JSRuntime != null)
+            if (list != null)
             {
                 await JSRuntime.InvokeVoidAsync("Radzen.selectListItem", search, list, selectedIndex);
             }
-        }
-
-        internal override async Task ClosePopup(string key)
-        {
-            if (JSRuntime != null)
-            {
-                await JSRuntime.InvokeVoidAsync("Radzen.closePopup", PopupID, Reference, nameof(OnClose), null, key == "Tab");
-            }
-
-            isPopupOpen = false;
-        }
-
-        /// <summary>
-        /// Called when popup is closed.
-        /// </summary>
-        [JSInvokable]
-        public Task OnClose()
-        {
-            isPopupOpen = false;
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -255,7 +139,7 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The value template.</value>
         [Parameter]
-        public RenderFragment<dynamic>? ValueTemplate { get; set; }
+        public RenderFragment<dynamic> ValueTemplate { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating DataGrid density.
@@ -268,7 +152,7 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The empty template.</value>
         [Parameter]
-        public RenderFragment? EmptyTemplate { get; set; }
+        public RenderFragment EmptyTemplate { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether pager is visible even when not enough data for paging.
@@ -292,25 +176,11 @@ namespace Radzen.Blazor
         public bool AllowColumnResize { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether column reorder is allowed.
-        /// </summary>
-        /// <value><c>true</c> if column reorder is allowed; otherwise, <c>false</c>.</value>
-        [Parameter]
-        public bool AllowColumnReorder { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether column picking is allowed.
-        /// </summary>
-        /// <value><c>true</c> if column picking is allowed; otherwise, <c>false</c>.</value>
-        [Parameter]
-        public bool AllowColumnPicking { get; set; }
-
-        /// <summary>
         /// Gets or sets the width of all columns.
         /// </summary>
         /// <value>The width of all columns.</value>
         [Parameter]
-        public string ColumnWidth { get; set; } = string.Empty;
+        public string ColumnWidth { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="RadzenDropDownDataGrid{TValue}"/> is responsive.
@@ -344,12 +214,6 @@ namespace Radzen.Blazor
         /// <value>Row selection preservation on pageing.</value>
         [Parameter]
         public bool PreserveRowSelectionOnPaging { get; set; } = false;
-
-        /// <summary>
-        /// Gets or sets the page size options.</summary>
-        /// <value>The page size options.</value>
-        [Parameter]
-        public IEnumerable<int> PageSizeOptions { get; set; } = Array.Empty<int>();
 
         /// <summary>
         /// Gets or sets the page numbers count.
@@ -457,17 +321,17 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The selected value.</value>
         [Parameter]
-        public object? SelectedValue { get; set; }
+        public object SelectedValue { get; set; }
 
         /// <summary>
         /// Gets or sets the columns.
         /// </summary>
         /// <value>The columns.</value>
         [Parameter]
-        public RenderFragment? Columns { get; set; }
+        public RenderFragment Columns { get; set; }
 
-        RadzenDataGrid<object>? grid;
-        IEnumerable<object>? pagedData;
+        RadzenDataGrid<object> grid;
+        IEnumerable<object> pagedData;
         int count;
 
         /// <summary>
@@ -515,26 +379,21 @@ namespace Radzen.Blazor
 
                 StateHasChanged();
 
-                await FocusItem();
-            }
-
-            await base.OnAfterRenderAsync(firstRender);
-        }
-
-        async Task FocusItem()
-        {
-            if (!Multiple && grid != null && SelectedItem != null)
-            {
-                var items = (LoadData.HasDelegate ? Data != null ? Data : Enumerable.Empty<object>() : (pagedData != null ? pagedData : Enumerable.Empty<object>())).OfType<object>().ToList();
-                if (items.Count > 0)
+                if (!Multiple && grid != null && SelectedItem != null)
                 {
-                    selectedIndex = items.IndexOf(SelectedItem);
-                    if (selectedIndex >= 0 && JSRuntime != null)
+                    var items = (LoadData.HasDelegate ? Data != null ? Data : Enumerable.Empty<object>() : (pagedData != null ? pagedData : Enumerable.Empty<object>())).OfType<object>().ToList();
+                    if (items.Any())
                     {
-                        await JSRuntime.InvokeAsync<int[]>("Radzen.focusTableRow", grid.GridId(), "ArrowDown", selectedIndex - 1, null);
+                        selectedIndex = items.IndexOf(SelectedItem);
+                        if (selectedIndex >= 0)
+                        {
+                            await JSRuntime.InvokeAsync<int[]>("Radzen.focusTableRow", grid.GridId(), "ArrowDown", selectedIndex - 1, null);
+                        }
                     }
                 }
             }
+
+            await base.OnAfterRenderAsync(firstRender);
         }
 
         /// <summary>
@@ -582,7 +441,7 @@ namespace Radzen.Blazor
                 property = "it";
             }
             var p = $@"({property} == null ? """" : {property})";
-            return $"{p}{filterCaseSensitivityOperator}.{Enum.GetName<StringFilterOperator>(FilterOperator)}(@0)";
+            return $"{p}{filterCaseSensitivityOperator}.{Enum.GetName(typeof(StringFilterOperator), FilterOperator)}(@0)";
         }
 
         private bool IsColumnFilterPropertyTypeString(RadzenDataGridColumn<object> column)
@@ -590,20 +449,13 @@ namespace Radzen.Blazor
             if (column.Type == typeof(string)) return true;
 
             var property = column.GetFilterProperty();
-            if(property is not null)
-            {
-                var itemType = Data != null ? Data.AsQueryable().ElementType : typeof(object);
-                var type = PropertyAccess.GetPropertyType(itemType, property);
+            var itemType = Data != null ? Data.AsQueryable().ElementType : typeof(object);
+            var type = PropertyAccess.GetPropertyType(itemType, property);
 
-                return type == typeof(string);
-            }
-            else
-            {
-                return false;
-            }
+            return type == typeof(string);
         }
 
-        string? prevSearch;
+        string prevSearch;
         string prevOrder = "";
         int? skip;
         async Task OnLoadData(LoadDataArgs args)
@@ -634,19 +486,19 @@ namespace Radzen.Blazor
                     {
                         if (AllowFilteringByWord)
                         {
-                            var words = searchText.Split(' ').Take(AllowFilteringByWordCount);
+                            string[] words = searchText.Split(' ');
 
                             foreach (string word in words)
                             {
                                 query = query.Where(grid.ColumnsCollection.Where(c => c.Filterable && IsColumnFilterPropertyTypeString(c))
-                                    .Select(c => new FilterDescriptor() { Property = c.GetFilterProperty(), FilterValue = word, FilterOperator = filterOperator, Type = c.Type }), 
+                                    .Select(c => new FilterDescriptor() { Property = c.GetFilterProperty(), FilterValue = word, FilterOperator = filterOperator }), 
                                         LogicalFilterOperator.Or, FilterCaseSensitivity);
                             }
                         }
                         else
                         {
                             query = query.Where(grid.ColumnsCollection.Where(c => c.Filterable && IsColumnFilterPropertyTypeString(c))
-                                .Select(c => new FilterDescriptor() { Property = c.GetFilterProperty(), FilterValue = searchText, FilterOperator = filterOperator, Type = c.Type }), 
+                                .Select(c => new FilterDescriptor() { Property = c.GetFilterProperty(), FilterValue = searchText, FilterOperator = filterOperator }), 
                                     LogicalFilterOperator.Or, FilterCaseSensitivity);
                         }
                     }
@@ -654,16 +506,16 @@ namespace Radzen.Blazor
                     {
                         if (AllowFilteringByWord)
                         {
-                            var words = searchText.Split(' ').Take(AllowFilteringByWordCount);
+                            string[] words = searchText.Split(' ');
 
                             foreach (string word in words)
                             {
-                                query = query.Where(TextProperty!, word, FilterOperator, FilterCaseSensitivity);
+                                query = query.Where(TextProperty, word, FilterOperator, FilterCaseSensitivity);
                             }
                         }
                         else
                         {
-                            query = query.Where(TextProperty!, searchText, FilterOperator, FilterCaseSensitivity);
+                            query = query.Where(TextProperty, searchText, FilterOperator, FilterCaseSensitivity);
                         }
                     }
                 }
@@ -677,11 +529,11 @@ namespace Radzen.Blazor
 
                 pagedData = await Task.FromResult(query.Cast<object>().Skip(skip.HasValue ? skip.Value : 0).Take(args.Top.HasValue ? args.Top.Value : PageSize).ToList());
 
-                internalView = query;
+                _internalView = query;
 
-                if (prevOrder != args.OrderBy && JSRuntime != null)
+                if (prevOrder != args.OrderBy)
                 {
-                    prevOrder = args.OrderBy!;
+                    prevOrder = args.OrderBy;
                     await JSRuntime.InvokeVoidAsync("eval");
                 }
             }
@@ -695,17 +547,14 @@ namespace Radzen.Blazor
                 var items = (LoadData.HasDelegate ? Data != null ? Data : Enumerable.Empty<object>() : (pagedData != null ? pagedData : Enumerable.Empty<object>())).OfType<object>().ToList();
                 selectedIndex = Math.Clamp(selectedIndex, 0, items.Count - 1);
                 
-                if (grid != null && JSRuntime != null)
-                {
-                    await JSRuntime.InvokeAsync<int[]>("Radzen.focusTableRow", grid.GridId(), "ArrowDown", selectedIndex - 1, null);
+                await JSRuntime.InvokeAsync<int[]>("Radzen.focusTableRow", grid.GridId(), "ArrowDown", selectedIndex - 1, null);
 
-                    await grid.OnRowSelect(items[selectedIndex], false);
-                }
+                await grid.OnRowSelect(items[selectedIndex], false);
             }
 
         }
 
-        private IEnumerable internalView = Enumerable.Empty<object>();
+        IEnumerable _internalView = Enumerable.Empty<object>();
 
         /// <summary>
         /// Gets the view. The data with sorting, filtering and paging applied.
@@ -715,7 +564,7 @@ namespace Radzen.Blazor
         {
             get
             {
-                return internalView;
+                return _internalView;
             }
         }
 
@@ -735,7 +584,7 @@ namespace Radzen.Blazor
         /// Selects the item from value.
         /// </summary>
         /// <param name="value">The value.</param>
-        protected override void SelectItemFromValue(object? value)
+        protected override void SelectItemFromValue(object value)
         {
             if (value != null && Query != null)
             {
@@ -769,13 +618,13 @@ namespace Radzen.Blazor
                     {
                         SelectedItemChanged.InvokeAsync(SelectedItem);
                         selectedItems.Clear();
-                        selectedItems.Add(SelectedItem!);
+                        selectedItems.Add(SelectedItem);
                         try
                         {
-                            if (grid != null && !isFirstRender && JSRuntime != null)
+                            if (grid != null && !isFirstRender)
                             {
-                                InvokeAsync(() => grid.SelectRow(SelectedItem!, false));
-                                JSRuntime.InvokeAsync<int[]>("Radzen.focusTableRow", grid.GridId(), "ArrowDown", Items.ToList().IndexOf(SelectedItem!) - 1, null);
+                                InvokeAsync(() => grid.SelectRow(SelectedItem, false));
+                                JSRuntime.InvokeAsync<int[]>("Radzen.focusTableRow", grid.GridId(), "ArrowDown", Items.ToList().IndexOf(SelectedItem) - 1, null);
                             }
                         }
                         catch { }
@@ -837,13 +686,13 @@ namespace Radzen.Blazor
 
             selectedItems.Clear();
 
-            await ValueChanged.InvokeAsync((TValue?)(object?)internalValue);
+            await ValueChanged.InvokeAsync((TValue)internalValue);
             if (FieldIdentifier.FieldName != null) { EditContext?.NotifyFieldChanged(FieldIdentifier); }
             await Change.InvokeAsync(internalValue);
 
-            if (!Multiple && grid != null)
+            if (!Multiple)
             {
-                await grid.SelectRow(default!, false);
+                await grid.SelectRow(null);
             }
 
             if (canRequest)
@@ -854,18 +703,11 @@ namespace Radzen.Blazor
             StateHasChanged();
         }
 
-        string? previousSearch;
+        string previousSearch;
 
         /// <inheritdoc />
         protected override async Task HandleKeyPress(KeyboardEventArgs args, bool isFilter, bool? shouldSelectOnChange = null)
         {
-            ArgumentNullException.ThrowIfNull(args);
-            var gridInstance = grid;
-            if (gridInstance == null)
-            {
-                return;
-            }
-
             var items = (LoadData.HasDelegate ? Data != null ? Data : Enumerable.Empty<object>() : (pagedData != null ? pagedData : Enumerable.Empty<object>())).OfType<object>().ToList();
 
             var key = args.Code != null ? args.Code : args.Key;
@@ -878,18 +720,18 @@ namespace Radzen.Blazor
                 {
                     var newSelectedIndex = Math.Clamp(selectedIndex + (key == "ArrowUp" ? -1 : 1), 0, items.Count - 1);
                     var shouldChange = newSelectedIndex != selectedIndex;
-                    if (shouldChange && JSRuntime != null)
+                    if (shouldChange)
                     {
                         selectedIndex = newSelectedIndex;
-                        await JSRuntime.InvokeAsync<int[]>("Radzen.focusTableRow", gridInstance.GridId(), key, selectedIndex + (key == "ArrowUp" ? 1 : -1), null);
-                        await gridInstance.OnRowSelect(items[selectedIndex], false);
+                        await JSRuntime.InvokeAsync<int[]>("Radzen.focusTableRow", grid.GridId(), key, selectedIndex + (key == "ArrowUp" ? 1 : -1), null);
+                        await grid.OnRowSelect(items[selectedIndex], false);
                     }
 
-                    if (!Multiple && JSRuntime != null)
+                    if (!Multiple)
                     {
                         var popupOpened = await JSRuntime.InvokeAsync<bool>("Radzen.popupOpened", PopupID);
 
-                        if (shouldChange && (!popupOpened || gridInstance.IsVirtualizationAllowed()))
+                        if (shouldChange && (!popupOpened || grid.IsVirtualizationAllowed()))
                         {
                             await OnSelectItem(items[selectedIndex], true);
                         }
@@ -900,22 +742,21 @@ namespace Radzen.Blazor
                     //
                 }
             }
-            else if ((key == "ArrowLeft" || key == "ArrowRight") && !gridInstance.IsVirtualizationAllowed())
+            else if ((key == "ArrowLeft" || key == "ArrowRight") && !grid.IsVirtualizationAllowed())
             {
                 if (key == "ArrowLeft")
                 {
-                    await gridInstance.PrevPage();
+                    await grid.PrevPage();
                 }
                 else
                 {
-                    await gridInstance.NextPage();
+                    await grid.NextPage();
                 }
             }
             else if (key == "Enter" || key == "NumpadEnter")
             {
                 preventKeydown = false;
 
-                if (JSRuntime == null) return;
                 var popupOpened = await JSRuntime.InvokeAsync<bool>("Radzen.popupOpened", PopupID);
 
                 if (!popupOpened)
@@ -924,7 +765,7 @@ namespace Radzen.Blazor
                 }
                 else
                 {
-                    if (!gridInstance.IsVirtualizationAllowed())
+                    if (!grid.IsVirtualizationAllowed())
                     {
                         if (selectedIndex >= 0 && selectedIndex <= items.Count - 1)
                         {
@@ -941,20 +782,19 @@ namespace Radzen.Blazor
 
                 await OpenPopup(key, isFilter);
             }
-            else if (key == "Escape" && JSRuntime != null)
+            else if (key == "Escape")
             {
                 preventKeydown = false;
-                await ClosePopup(key);
+
+                await JSRuntime.InvokeVoidAsync("Radzen.closePopup", PopupID);
             }
             else if (key == "Tab")
             {
                 preventKeydown = false;
 
-                await ClosePopup(key);
-
-                if (JSRuntime != null)
+                if (!ShowSearch && !ShowAdd)
                 {
-                    await JSRuntime.InvokeVoidAsync("Radzen.focusNext", Element, args.ShiftKey);
+                    await JSRuntime.InvokeVoidAsync("Radzen.closePopup", PopupID);
                 }
             }
             else if (key == "Delete" && AllowClear)
@@ -975,7 +815,9 @@ namespace Radzen.Blazor
             else if (AllowFiltering && isFilter && FilterAsYouType)
             {
                 preventKeydown = true;
+
                 selectedIndex = -1;
+                Debounce(DebounceFilter, FilterDelay);
             }
             else
             {
@@ -985,27 +827,21 @@ namespace Radzen.Blazor
 
         async Task DebounceFilter()
         {
-            if (JSRuntime != null)
-            {
-                searchText = await JSRuntime.InvokeAsync<string>("Radzen.getInputValue", search) ?? string.Empty;
-            }
-
             if (searchText != previousSearch)
             {
                 previousSearch = searchText;
                 _view = null;
+
                 await InvokeAsync(RefreshAfterFilter);
             }
-
-            await InvokeAsync(() => SearchTextChanged.InvokeAsync(SearchText));
         }
 
         async Task CloseOnEscape(KeyboardEventArgs args)
         {
             var key = args.Code != null ? args.Code : args.Key;
-            if (key == "Escape" && JSRuntime != null)
+            if (key == "Escape")
             {
-                await ClosePopup(key);
+                await JSRuntime.InvokeVoidAsync("Radzen.closePopup", PopupID);
             }
         }
 
@@ -1017,7 +853,7 @@ namespace Radzen.Blazor
                 {
                     if(LoadData.HasDelegate)
                     {
-                        Data = Enumerable.Empty<object>();
+                        Data = null;
                         await grid.Reload();
                     }
                     else
@@ -1046,52 +882,20 @@ namespace Radzen.Blazor
 
             StateHasChanged();
 
-            if (!IsVirtualizationAllowed() && grid != null)
+            if (!IsVirtualizationAllowed())
             {
                 await grid.FirstPage(true);
             }
 
-            if (JSRuntime != null)
-            {
-                await JSRuntime.InvokeAsync<string>("Radzen.repositionPopup", Element, PopupID);
-            }
-        }
-
-        /// <inheritdoc />
-        protected override Task OnFilterInput(ChangeEventArgs args)
-        {
-            ArgumentNullException.ThrowIfNull(args);
-
-            if (FilterAsYouType)
-            {
-                if (ResetSelectedIndexOnFilter)
-                {
-                    selectedIndex = -1;
-                }
-
-                Debounce(DebounceFilter, FilterDelay);
-            }
-            return Task.CompletedTask;
+            await JSRuntime.InvokeAsync<string>("Radzen.repositionPopup", Element, PopupID);
         }
 
         /// <summary>
-        /// Handles the filter event.
+        /// Handles the <see cref="E:Filter" /> event.
         /// </summary>
         /// <param name="args">The <see cref="ChangeEventArgs"/> instance containing the event data.</param>
         protected override async Task OnFilter(ChangeEventArgs args)
         {
-            await DebounceFilter();
-        }
-
-        async Task ClearSearchText()
-        {
-            searchText = null;
-            _view = null;
-            await SearchTextChanged.InvokeAsync(searchText);
-            if (JSRuntime != null)
-            {
-                await JSRuntime.InvokeAsync<string>("Radzen.setInputValue", search, "");
-            }
             await DebounceFilter();
         }
 
@@ -1131,13 +935,6 @@ namespace Radzen.Blazor
         public bool AllowFilteringByWord { get; set; }
 
         /// <summary>
-        /// Gets or sets the AllowFilteringByWord max count.
-        /// </summary>
-        /// <value>The AllowFilteringByWord max count.</value>
-        [Parameter]
-        public int AllowFilteringByWordCount { get; set; } = 10;
-
-        /// <summary>
         /// Gets or sets a value indicating whether DataGrid row can be selected on row click.
         /// </summary>
         /// <value><c>true</c> if DataGrid row can be selected on row click; otherwise, <c>false</c>.</value>
@@ -1151,7 +948,6 @@ namespace Radzen.Blazor
             if (AllowRowSelectOnRowClick)
             {
                 await SelectItem(item);
-                await FocusItem();
             }
         }
         /// <summary>
@@ -1160,27 +956,20 @@ namespace Radzen.Blazor
         /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task CloseAndFocus()
         {
-            if (!Disabled && !Multiple && JSRuntime != null)
+            if (!Disabled && !Multiple)
             {
-                await ClosePopup("Enter");
+                await JSRuntime.InvokeVoidAsync("Radzen.closePopup", PopupID);
             }
 
             var of = OpenOnFocus;
             OpenOnFocus = false;
 
-            if (JSRuntime != null)
-            {
-                await JSRuntime.InvokeVoidAsync("Radzen.focusElement", UniqueID);
-            }
+            await JSRuntime.InvokeVoidAsync("Radzen.focusElement", UniqueID);
 
             OpenOnFocus = of;
         }
 
-        /// <summary>
-        /// Event handler for when an item is unselected by clicking a chip
-        /// </summary>
-        /// <param name="item">The item that is to be removed</param>
-        protected virtual async Task OnChipRemove(object item)
+        private async Task OnChipRemove(object item)
         {
             if (!Disabled)
             {
@@ -1199,17 +988,15 @@ namespace Radzen.Blazor
         {
             base.Dispose();
 
-            if (IsJSRuntimeAvailable && JSRuntime != null)
+            if (IsJSRuntimeAvailable)
             {
-                JSRuntime.InvokeVoid("Radzen.destroyPopup", PopupID);
+                JSRuntime.InvokeVoidAsync("Radzen.destroyPopup", PopupID);
             }
-
-            GC.SuppressFinalize(this);
         }
 
         bool clicking;
         /// <summary>
-        /// Handles the click event.
+        /// Handles the <see cref="E:Click" /> event.
         /// </summary>
         /// <param name="args">The <see cref="MouseEventArgs"/> instance containing the event data.</param>
         public async Task OnAddClick(MouseEventArgs args)
@@ -1234,7 +1021,7 @@ namespace Radzen.Blazor
         /// <summary>
         /// Handles the reference to the DataGrid component.
         /// </summary>
-        public RadzenDataGrid<object>? DataGrid
+        public RadzenDataGrid<object> DataGrid
         {
             get
             {
@@ -1248,9 +1035,9 @@ namespace Radzen.Blazor
         public new async Task Reset() {
             base.Reset();
 
-            if (!Multiple && grid != null)
+            if (!Multiple)
             {
-                await grid.SelectRow(default!, false);
+                await grid.SelectRow(null);
             }
         }
     }

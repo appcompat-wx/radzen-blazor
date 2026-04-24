@@ -93,61 +93,15 @@ namespace Radzen.Blazor.Tests
         }
 
         [Fact]
-        public void Link_Renders_UnmatchedParameter()
+        public void Icon_Renders_UnmatchedParameter()
         {
             using var ctx = new TestContext();
 
-            var component = ctx.RenderComponent<RadzenLink>();
+            var component = ctx.RenderComponent<RadzenIcon>();
 
-            component.SetParametersAndRender(parameters => parameters.AddUnmatched("data-testid", "my-link"));
+            component.SetParametersAndRender(parameters => parameters.AddUnmatched("autofocus", ""));
 
-            Assert.Contains(@"data-testid=""my-link""", component.Markup);
-        }
-
-        [Fact]
-        public void Link_Renders_WithClassName()
-        {
-            using var ctx = new TestContext();
-            var component = ctx.RenderComponent<RadzenLink>();
-
-            Assert.Contains("rz-link", component.Markup);
-        }
-
-        [Fact]
-        public void Link_Renders_ATag()
-        {
-            using var ctx = new TestContext();
-            var component = ctx.RenderComponent<RadzenLink>(parameters =>
-            {
-                parameters.Add(p => p.Path, "/home");
-            });
-
-            Assert.Contains("<a", component.Markup);
-        }
-
-        [Fact]
-        public void Link_NotVisible_DoesNotRender()
-        {
-            using var ctx = new TestContext();
-            var component = ctx.RenderComponent<RadzenLink>(parameters =>
-            {
-                parameters.Add(p => p.Visible, false);
-            });
-
-            Assert.DoesNotContain("rz-link", component.Markup);
-        }
-
-        [Fact]
-        public void Link_Renders_ChildContent()
-        {
-            using var ctx = new TestContext();
-            var component = ctx.RenderComponent<RadzenLink>(parameters =>
-            {
-                parameters.Add(p => p.Path, "/test");
-                parameters.AddChildContent("<span>Custom Link</span>");
-            });
-
-            Assert.Contains("Custom Link", component.Markup);
+            Assert.Contains(@$"autofocus", component.Markup);
         }
     }
 }

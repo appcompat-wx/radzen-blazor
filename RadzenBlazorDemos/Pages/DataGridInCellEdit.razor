@@ -131,8 +131,6 @@ ColumnWidth="200px" CellClick="@OnCellClick">
         employees = dbContext.Employees;
 
         orders = dbContext.Orders.Include("Customer").Include("Employee");
-
-        orders.First().ShipName = null;
     }
 
     /// <summary>
@@ -168,12 +166,13 @@ ColumnWidth="200px" CellClick="@OnCellClick">
     /// <param name="args"></param>
     async Task OnCellClick(DataGridCellMouseEventArgs<Order> args)
     {
-        if (!grid.IsValid ||
+        if (!grid.IsValid || 
             (ordersToUpdate.Contains(args.Data) && columnEditing == args.Column.Property)) return;
 
-        // Commit any pending edit before switching to the new cell.
+        // Record the previous edited field, if you're not using IRevertibleChangeTracking to track object changes
         if (ordersToUpdate.Any())
         {
+            editedFields.Add(new(ordersToUpdate.First().OrderID, columnEditing));
             await Update();
         }
 
@@ -204,8 +203,6 @@ ColumnWidth="200px" CellClick="@OnCellClick">
 
         if (ordersToUpdate.Any())
         {
-            // Record the edited field so the cell gets the "edited" indicator.
-            editedFields.Add(new(ordersToUpdate.First().OrderID, columnEditing));
             await grid.UpdateRow(ordersToUpdate.First());
         }
     }

@@ -14,11 +14,11 @@
 
           if (chart.ShouldInvertAxes())
           {
-              return AxisMeasurer.XAxis(chart.ValueScale, chart.ValueAxis, chart.ValueAxis.Title);
+              return AxisMeasurer.XAxis(chart.ValueAxis.Title);
           }
           else
           {
-              return AxisMeasurer.XAxis(chart.CategoryScale, this, Title);
+              return AxisMeasurer.XAxis(Title);
           }
       }
 
@@ -29,15 +29,12 @@
       {
           get
           {
-              return Chart != null ? Measure(Chart) : 0;
+              return Measure(Chart);
           }
       }
 
       protected override void Initialize()
       {
-          if (Chart != null)
-          {
-              Chart.CategoryAxis = this;
-          }
+          Chart.CategoryAxis = this;
       }
 }

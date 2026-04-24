@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Radzen.Blazor.Rendering;
 using System;
-using System.Globalization;
 
 namespace Radzen.Blazor
 {
@@ -61,8 +60,7 @@ namespace Radzen.Blazor
         {
             get
             {
-                var culture = Scheduler?.Culture ?? System.Globalization.CultureInfo.CurrentCulture;
-                return Scheduler?.CurrentDate.Date.StartOfWeek(culture) ?? DateTime.Today.StartOfWeek(culture);
+                return Scheduler.CurrentDate.Date.StartOfWeek();
             }
         }
 
@@ -71,8 +69,7 @@ namespace Radzen.Blazor
         {
             get
             {
-                var culture = Scheduler?.Culture ?? System.Globalization.CultureInfo.CurrentCulture;
-                return StartDate.EndOfWeek(culture).AddDays(1);
+                return StartDate.EndOfWeek().AddDays(1);
             }
         }
 
@@ -81,8 +78,7 @@ namespace Radzen.Blazor
         {
             get
             {
-                var culture = Scheduler?.Culture ?? System.Globalization.CultureInfo.CurrentCulture;
-                return $"{StartDate.ToString(culture.DateTimeFormat.ShortDatePattern, culture)} - {StartDate.EndOfWeek(culture).ToString(culture.DateTimeFormat.ShortDatePattern, culture)}";
+                return $"{StartDate.ToString(Scheduler.Culture.DateTimeFormat.ShortDatePattern)} - {StartDate.EndOfWeek().ToString(Scheduler.Culture.DateTimeFormat.ShortDatePattern)}";
             }
         }
 
@@ -90,13 +86,13 @@ namespace Radzen.Blazor
         /// <inheritdoc />
         public override DateTime Next()
         {
-            return Scheduler?.CurrentDate.Date.AddDays(7) ?? DateTime.Today.AddDays(7);
+            return Scheduler.CurrentDate.Date.AddDays(7);
         }
 
         /// <inheritdoc />
         public override DateTime Prev()
         {
-            return Scheduler?.CurrentDate.Date.AddDays(-7) ?? DateTime.Today.AddDays(-7);
+            return Scheduler.CurrentDate.Date.AddDays(-7);
         }
     }
 }

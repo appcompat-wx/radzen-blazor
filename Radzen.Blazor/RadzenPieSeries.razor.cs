@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Radzen.Blazor.Rendering;
 using System;
 using System.Collections.Generic;
@@ -9,104 +8,61 @@ using System.Threading.Tasks;
 namespace Radzen.Blazor
 {
     /// <summary>
-    /// A chart series that displays data as a circular pie chart with segments representing proportions of a whole.
-    /// RadzenPieSeries is ideal for showing percentage breakdowns, composition analysis, or relative comparisons of parts to a total.
-    /// Divides a circle into segments where each segment's angle is proportional to its value relative to the sum of all values.
-    /// Supports segment color customization via Fills, borders via Strokes with custom radius and positioning, TotalAngle to create semi-circles or partial pie charts (e.g., gauge-like displays),
-    /// StartAngle controlling where the first segment begins, optional labels showing values or percentages on segments, interactive tooltips showing category/value/percentage,
-    /// and legend where each segment appears as a legend item using category values.
-    /// Use CategoryProperty for segment labels (shown in legend/tooltip) and ValueProperty for the numeric value determining segment size. For a donut chart (pie with hollow center), use RadzenDonutSeries instead.
+    /// Renders pie series in <see cref="RadzenChart" />.
     /// </summary>
-    /// <typeparam name="TItem">The type of data items in the series. Each item represents one pie segment.</typeparam>
-    /// <example>
-    /// Basic pie chart:
-    /// <code>
-    /// &lt;RadzenChart&gt;
-    ///     &lt;RadzenPieSeries Data=@marketShare CategoryProperty="Company" ValueProperty="Share" /&gt;
-    /// &lt;/RadzenChart&gt;
-    /// </code>
-    /// Pie with custom colors and data labels:
-    /// <code>
-    /// &lt;RadzenChart&gt;
-    ///     &lt;RadzenPieSeries Data=@data CategoryProperty="Category" ValueProperty="Value" 
-    ///                      Fills=@(new[] { "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0" })&gt;
-    ///         &lt;RadzenSeriesDataLabels Visible="true" /&gt;
-    ///     &lt;/RadzenPieSeries&gt;
-    /// &lt;/RadzenChart&gt;
-    /// </code>
-    /// </example>
+    /// <typeparam name="TItem">The type of the series data item.</typeparam>
     public partial class RadzenPieSeries<TItem> : CartesianSeries<TItem>
     {
         /// <summary>
-        /// Gets or sets the horizontal center position of the pie chart in pixels.
-        /// If not set, the pie is automatically centered horizontally within the chart area.
+        /// Specifies the x coordinate of the pie center. Not set by default which centers pie horizontally.
         /// </summary>
-        /// <value>The X coordinate in pixels, or null for automatic horizontal centering.</value>
+        /// <value>The x.</value>
         [Parameter]
         public double? X { get; set; }
 
         /// <summary>
-        /// Gets or sets the vertical center position of the pie chart in pixels.
-        /// If not set, the pie is automatically centered vertically within the chart area.
+        /// Specifies the y coordinate of the pie center. Not set by default which centers pie vertically.
         /// </summary>
-        /// <value>The Y coordinate in pixels, or null for automatic vertical centering.</value>
+        /// <value>The y.</value>
         [Parameter]
         public double? Y { get; set; }
 
         /// <summary>
-        /// Gets or sets the radius of the pie chart in pixels.
-        /// If not set, the radius is automatically calculated to fit the available chart space.
+        /// Specifies the radius of the pie. Not set by default - the pie takes as much size of the chart as possible.
         /// </summary>
-        /// <value>The radius in pixels, or null for automatic sizing.</value>
         [Parameter]
         public double? Radius { get; set; }
 
         /// <summary>
-        /// Gets or sets a collection of fill colors applied to individual pie segments in sequence.
-        /// Each segment gets the color at its index position. If fewer colors than segments, colors are reused cyclically.
-        /// If not set, uses the chart's color scheme.
+        /// The fill colors of the pie segments. Used as the background of the segments.
         /// </summary>
-        /// <value>An enumerable collection of CSS color values for segment backgrounds.</value>
         [Parameter]
-        public IEnumerable<string>? Fills { get; set; }
+        public IEnumerable<string> Fills { get; set; }
 
         /// <summary>
-        /// Gets or sets a collection of stroke (border) colors applied to individual pie segments in sequence.
-        /// Use with <see cref="StrokeWidth"/> to create visible segment borders.
+        /// The stroke colors of the pie segments.
         /// </summary>
-        /// <value>An enumerable collection of CSS color values for segment borders.</value>
         [Parameter]
-        public IEnumerable<string>? Strokes { get; set; }
+        public IEnumerable<string> Strokes { get; set; }
 
         /// <summary>
-        /// Gets or sets the width of the pie segment borders in pixels.
-        /// Set to 0 for no borders, or increase to make segment divisions more visible.
+        /// The stroke width of the segments in pixels. By default set to <c>0</c>.
         /// </summary>
-        /// <value>The stroke width in pixels. Default is 0 (no borders).</value>
+        /// <value>The width of the stroke.</value>
         [Parameter]
         public double StrokeWidth { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether hovering or clicking a legend item displays the tooltip for the corresponding pie/donut segment.
-        /// This is useful when small slices are difficult to hover over directly on the chart.
+        /// Gets or sets the start angle from which segments are rendered (clockwise). Set to <c>90</c> by default.
+        /// Top is <c>90</c>, right is <c>0</c>, bottom is <c>270</c>, left is <c>180</c>.
         /// </summary>
-        /// <value><c>true</c> to show tooltips on legend item interaction; otherwise, <c>false</c>. Default is <c>false</c>.</value>
-        [Parameter]
-        public bool ShowTooltipOnLegend { get; set; } = true;
-
-        /// <summary>
-        /// Gets or sets the starting angle (in degrees) from which pie segments begin rendering, measured clockwise from the right (0°).
-        /// Use to rotate the pie: 90° (top), 0° (right), 180° (left), 270° (bottom).
-        /// </summary>
-        /// <value>The start angle in degrees. Default is 90 (top of circle).</value>
         [Parameter]
         public double StartAngle { get; set; } = 90;
 
         /// <summary>
-        /// Gets or sets the total angle span of the pie in degrees.
-        /// Use 360 for a full circle, 180 for a semi-circle, or other values for partial pies (useful for gauge-like visualizations).
+        /// Gets or sets the total angle of the pie in degrees. Set to <c>360</c> by default which renders a full circle.
+        /// Set to <c>180</c> to render a half circle or
         /// </summary>
-        /// <value>The total angle in degrees. Default is 360 (full circle).</value>
         [Parameter]
         public double TotalAngle { get; set; } = 360;
 
@@ -117,11 +73,7 @@ namespace Radzen.Blazor
         {
             get
             {
-                if (Chart?.CategoryScale?.Output != null && Chart?.ValueScale?.Output != null)
-                {
-                    return Radius ?? Math.Min(Chart.CategoryScale.Output.Mid, Chart.ValueScale.Output.Mid);
-                }
-                return Radius ?? 0;
+                return Radius ?? Math.Min(Chart.CategoryScale.Output.Mid, Chart.ValueScale.Output.Mid);
             }
         }
 
@@ -132,11 +84,7 @@ namespace Radzen.Blazor
         {
             get
             {
-                if (Chart?.CategoryScale?.Output != null)
-                {
-                    return X ?? Chart.CategoryScale.Output.Mid + 8;
-                }
-                return X ?? 0;
+                return X ?? Chart.CategoryScale.Output.Mid + 8;
             }
         }
 
@@ -147,11 +95,7 @@ namespace Radzen.Blazor
         {
             get
             {
-                if (Chart?.ValueScale?.Output != null)
-                {
-                    return Y ?? Chart.ValueScale.Output.Mid;
-                }
-                return Y ?? 0;
+                return Y ?? Chart.ValueScale.Output.Mid;
             }
         }
         /// <inheritdoc />
@@ -193,60 +137,25 @@ namespace Radzen.Blazor
                     builder.AddAttribute(3, nameof(LegendItem.MarkerSize), MarkerSize);
                     builder.AddAttribute(4, nameof(LegendItem.MarkerType), MarkerType);
                     builder.AddAttribute(5, nameof(LegendItem.Color), PickColor(Items.IndexOf(data), Fills));
-                    builder.AddAttribute(6, nameof(LegendItem.Click), EventCallback.Factory.Create(this, () => OnLegendClick(data!)));
+                    builder.AddAttribute(6, nameof(LegendItem.Click), EventCallback.Factory.Create(this, () => OnLegendClick(data)));
                     builder.AddAttribute(7, nameof(LegendItem.Clickable), clickable);
-
-                    if (ShowTooltipOnLegend)
-                    {
-                        builder.AddAttribute(8, nameof(LegendItem.MouseEnter), EventCallback.Factory.Create<MouseEventArgs>(this, args => OnLegendMouseEnter(data!)));
-                        builder.AddAttribute(9, nameof(LegendItem.MouseLeave), EventCallback.Factory.Create<MouseEventArgs>(this, args => OnLegendMouseLeave()));
-                    }
-
                     builder.CloseComponent();
-                }
-                ;
+                };
             };
-        }
-
-        private object? hoveredLegendData;
-
-        private async Task OnLegendMouseEnter(object data)
-        {
-            hoveredLegendData = data;
-
-            var chart = RequireChart();
-            if (chart != null)
-            {
-                await chart.ShowTooltip(this, data);
-            }
-        }
-
-        private void OnLegendMouseLeave()
-        {
-            hoveredLegendData = null;
         }
 
         private async Task OnLegendClick(object data)
         {
-            var chart = RequireChart();
-            if (chart != null)
+            if (Chart.LegendClick.HasDelegate)
             {
-                if (ShowTooltipOnLegend)
+                var args = new LegendClickEventArgs
                 {
-                    await chart.ShowTooltip(this, data);
-                }
+                    Data = data,
+                    Title = GetTitle(),
+                    IsVisible = true,
+                };
 
-                if (chart.LegendClick.HasDelegate)
-                {
-                    var args = new LegendClickEventArgs
-                    {
-                        Data = data,
-                        Title = GetTitle(),
-                        IsVisible = true,
-                    };
-
-                    await chart.LegendClick.InvokeAsync(args);
-                }
+                await Chart.LegendClick.InvokeAsync(args);
             }
         }
         /// <inheritdoc />
@@ -265,14 +174,9 @@ namespace Radzen.Blazor
         /// <inheritdoc />
         public override (object, Point) DataAt(double x, double y)
         {
-            if (hoveredLegendData != null)
-            {
-                return (hoveredLegendData, new Point() { X = x, Y = y });
-            }
-
             if (!Contains(x, y, 0))
             {
-                return (default!, new Point());
+                return (null, null);
             }
 
             var angle = Math.Atan2(CenterY - y, x - CenterX) * 180 / Math.PI;
@@ -300,13 +204,13 @@ namespace Radzen.Blazor
                 if ((startAngle >= endAngle && angle <= startAngle && angle >= endAngle) ||
                     (startAngle <= endAngle && (angle <= startAngle || angle >= endAngle)))
                 {
-                    return (data!, new Point() { X = x, Y = y });
+                    return (data, new Point() { X = x, Y = y });
                 }
 
                 startAngle = endAngle;
             }
 
-            return (default!, new Point());
+            return (null, null);
         }
 
 
@@ -464,16 +368,12 @@ namespace Radzen.Blazor
                     x = CenterX + hyp * Math.Cos(phi);
                     y = CenterY + hyp * Math.Sin(phi);
 
-                    var chart = RequireChart();
-                    if (chart != null)
+                    list.Add(new ChartDataLabel
                     {
-                        list.Add(new ChartDataLabel
-                        {
-                            TextAnchor = textAnchor,
-                            Position = new Point { X = x, Y = y },
-                            Text = chart.ValueAxis.Format(chart.ValueScale, Value(d))
-                        });
-                    }
+                        TextAnchor = textAnchor,
+                        Position = new Point { X = x, Y = y },
+                        Text = Chart.ValueAxis.Format(Chart.ValueScale, Value(d))
+                    });
                 }
             }
 

@@ -2,15 +2,13 @@
     <RadzenCard Variant="Variant.Outlined" Style="width: 100%;">
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap">
             <RadzenCheckBox @bind-Value="@showDataLabels" Name="dataLabels"></RadzenCheckBox>
-            <RadzenLabel Text="Show Data Labels" Component="dataLabels" />
-            <RadzenCheckBox @bind-Value="@showTooltipOnLegend" Name="legendTooltip"></RadzenCheckBox>
-            <RadzenLabel Text="Show Tooltip On Legend" Component="legendTooltip" />
+                <RadzenLabel Text="Show Data Labels" Component="dataLabels" />
         </RadzenStack>
     </RadzenCard>
 
     <RadzenStack Style="width: 100%; max-width: 600px;">
         <RadzenChart SeriesClick=@OnSeriesClick>
-                <RadzenPieSeries Data="@revenue" Title="Revenue" CategoryProperty="Quarter" ValueProperty="Revenue" ShowTooltipOnLegend="@showTooltipOnLegend">
+                <RadzenPieSeries Data="@revenue" Title="Revenue" CategoryProperty="Quarter" ValueProperty="Revenue">
                     <RadzenSeriesDataLabels Visible="@showDataLabels" />
                 </RadzenPieSeries>
             </RadzenChart>
@@ -22,7 +20,6 @@
 @code {
     EventConsole console;
     bool showDataLabels = false;
-    bool showTooltipOnLegend = true;
 
     void OnSeriesClick(SeriesClickEventArgs args)
     {

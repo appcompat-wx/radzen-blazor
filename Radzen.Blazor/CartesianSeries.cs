@@ -19,17 +19,7 @@ namespace Radzen.Blazor
         /// Cache for the value returned by <see cref="Category"/> when that value is only dependent on
         /// <see cref="CategoryProperty"/>.
         /// </summary>
-        Func<TItem, double>? categoryPropertyCache;
-
-        /// <summary>
-        /// Returns the parent <see cref="RadzenChart"/> instance or throws an <see cref="InvalidOperationException"/> if not present.
-        /// </summary>
-        /// <returns>The parent <see cref="RadzenChart"/>.</returns>
-        /// <exception cref="InvalidOperationException">Thrown when the parent chart is not set.</exception>
-        protected RadzenChart RequireChart()
-        {
-            return Chart ?? throw new InvalidOperationException($"{GetType().Name} requires a parent RadzenChart.");
-        }
+        Func<TItem, double> categoryPropertyCache;
 
         /// <summary>
         /// Creates a getter function that returns a value from the specified category scale for the specified data item.
@@ -44,13 +34,13 @@ namespace Radzen.Blazor
 
             if (IsNumeric(CategoryProperty))
             {
-                categoryPropertyCache = PropertyAccess.Getter<TItem, double>(CategoryProperty!);
+                categoryPropertyCache = PropertyAccess.Getter<TItem, double>(CategoryProperty);
                 return categoryPropertyCache;
             }
 
             if (IsDate(CategoryProperty))
             {
-                var category = PropertyAccess.Getter<TItem, DateTime>(CategoryProperty!);
+                var category = PropertyAccess.Getter<TItem, DateTime>(CategoryProperty);
                 categoryPropertyCache = (item) => category(item).Ticks;
                 return categoryPropertyCache;
             }
@@ -59,7 +49,7 @@ namespace Radzen.Blazor
             {
                 Func<TItem, object> category = String.IsNullOrEmpty(CategoryProperty) ? (item) => string.Empty : PropertyAccess.Getter<TItem, object>(CategoryProperty);
 
-                return (item) => ordinal.Data?.IndexOf(category(item)) ?? -1;
+                return (item) => ordinal.Data.IndexOf(category(item));
             }
 
             return (item) => Items.IndexOf(item);
@@ -70,8 +60,6 @@ namespace Radzen.Blazor
         /// </summary>
         protected Func<TItem, double> ComposeCategory(ScaleBase scale)
         {
-            ArgumentNullException.ThrowIfNull(scale);
-
             return scale.Compose(Category(scale));
         }
 
@@ -80,32 +68,7 @@ namespace Radzen.Blazor
         /// </summary>
         protected Func<TItem, double> ComposeValue(ScaleBase scale)
         {
-            ArgumentNullException.ThrowIfNull(scale);
-
             return scale.Compose(Value);
-        }
-
-        /// <summary>
-        /// Returns true if the ValueProperty type is nullable.
-        /// </summary>
-        protected bool IsValueNullable()
-        {
-            if (string.IsNullOrEmpty(ValueProperty))
-            {
-                return false;
-            }
-
-            var propertyType = PropertyAccess.GetPropertyType(typeof(TItem), ValueProperty);
-            return propertyType != null && Nullable.GetUnderlyingType(propertyType) != null;
-        }
-
-        /// <summary>
-        /// Creates a function that returns the raw object value of the ValueProperty (before conversion to double).
-        /// Used to detect null values in nullable numeric properties.
-        /// </summary>
-        protected Func<TItem, object?> GetRawValueGetter()
-        {
-            return PropertyAccess.Getter<TItem, object?>(ValueProperty!);
         }
 
         /// <summary>
@@ -114,7 +77,7 @@ namespace Radzen.Blazor
         /// <param name="propertyName">Name of the property.</param>
         /// <returns><c>true</c> if the specified property name is date; otherwise, <c>false</c>.</returns>
         /// <exception cref="ArgumentException">Property {propertyName} does not exist</exception>
-        protected bool IsDate(string? propertyName)
+        protected bool IsDate(string propertyName)
         {
             if (String.IsNullOrEmpty(propertyName))
             {
@@ -128,10 +91,12 @@ namespace Radzen.Blazor
                 throw new ArgumentException($"Property {propertyName} does not exist");
             }
 
+#if NET6_0_OR_GREATER
             if(PropertyAccess.IsDateOnly(property))
             {
                 return false;
             }
+#endif
             return PropertyAccess.IsDate(property);
         }
 
@@ -141,7 +106,7 @@ namespace Radzen.Blazor
         /// <param name="propertyName">Name of the property.</param>
         /// <returns><c>true</c> if the specified property name is numeric; otherwise, <c>false</c>.</returns>
         /// <exception cref="ArgumentException">Property {propertyName} does not exist</exception>
-        protected bool IsNumeric(string? propertyName)
+        protected bool IsNumeric(string propertyName)
         {
             if (String.IsNullOrEmpty(propertyName))
             {
@@ -160,21 +125,21 @@ namespace Radzen.Blazor
 
         /// <inheritdoc />
         [Parameter]
-        public string Title { get; set; } = null!;
+        public string Title { get; set; }
 
         /// <summary>
         /// Gets or sets the child content.
         /// </summary>
         /// <value>The child content.</value>
         [Parameter]
-        public RenderFragment? ChildContent { get; set; }
+        public RenderFragment ChildContent { get; set; }
 
         /// <summary>
         /// Gets or sets the tooltip template.
         /// </summary>
         /// <value>The tooltip template.</value>
         [Parameter]
-        public RenderFragment<TItem>? TooltipTemplate { get; set; }
+        public RenderFragment<TItem> TooltipTemplate { get; set; }
 
         /// <summary>
         /// Gets the list of overlays.
@@ -192,7 +157,7 @@ namespace Radzen.Blazor
         /// The name of the property of <typeparamref name="TItem" /> that provides the X axis (a.k.a. category axis) values.
         /// </summary>
         [Parameter]
-        public string? CategoryProperty { get; set; }
+        public string CategoryProperty { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="CartesianSeries{TItem}"/> is visible.
@@ -229,7 +194,7 @@ namespace Radzen.Blazor
         /// The name of the property of <typeparamref name="TItem" /> that provides the Y axis (a.k.a. value axis) values.
         /// </summary>
         [Parameter]
-        public string? ValueProperty { get; set; }
+        public string ValueProperty { get; set; }
 
         /// <inheritdoc />
         [Parameter]
@@ -258,7 +223,7 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The data.</value>
         [Parameter]
-        public IEnumerable<TItem>? Data { get; set; }
+        public IEnumerable<TItem> Data { get; set; }
 
         /// <summary>
         /// Stores <see cref="Data" /> as an IList of <typeparamref name="TItem"/>.
@@ -307,8 +272,6 @@ namespace Radzen.Blazor
         /// <inheritdoc />
         public virtual ScaleBase TransformCategoryScale(ScaleBase scale)
         {
-            ArgumentNullException.ThrowIfNull(scale);
-
             if (Items == null)
             {
                 return scale;
@@ -335,7 +298,7 @@ namespace Radzen.Blazor
 
             var data = GetCategories();
 
-            if (scale is OrdinalScale ordinal && ordinal.Data != null)
+            if (scale is OrdinalScale ordinal)
             {
                 foreach (var item in ordinal.Data)
                 {
@@ -365,21 +328,11 @@ namespace Radzen.Blazor
         /// <inheritdoc />
         public virtual ScaleBase TransformValueScale(ScaleBase scale)
         {
-            ArgumentNullException.ThrowIfNull(scale);
-
             if (Items != null)
             {
-                IEnumerable<TItem> items = Items;
-
-                if (IsValueNullable())
+                if (Items.Any())
                 {
-                    var rawGetter = GetRawValueGetter();
-                    items = items.Where(item => rawGetter(item) != null);
-                }
-
-                if (items.Any())
-                {
-                    scale.Input.MergeWidth(ScaleRange.From(items, Value));
+                    scale.Input.MergeWidth(ScaleRange.From(Items, Value));
                 }
             }
 
@@ -445,32 +398,29 @@ namespace Radzen.Blazor
             {
                 if (Data != null)
                 {
-                    if (Data is IList<TItem> list)
+                    if (Data is IList<TItem>)
                     {
-                        Items = list;
+                        Items = Data as IList<TItem>;
                     }
                     else
                     {
                         Items = Data.ToList();
                     }
 
-                    if (!string.IsNullOrEmpty(CategoryProperty) && (IsDate(CategoryProperty) || IsNumeric(CategoryProperty)))
+                    if (IsDate(CategoryProperty) || IsNumeric(CategoryProperty))
                     {
                         Items = Items.AsQueryable().OrderBy(CategoryProperty).ToList();
                     }
                 }
 
-                if (Chart != null)
-                {
-                    await Chart.Refresh(false);
-                }
+                await Chart.Refresh(false);
             }
         }
 
         /// <inheritdoc />
         protected override void Initialize()
         {
-            Chart?.AddSeries(this);
+            Chart.AddSeries(this);
         }
 
         /// <inheritdoc />
@@ -493,9 +443,6 @@ namespace Radzen.Blazor
         /// <returns><c>true</c> if the polygon contains the point, <c>false</c> otherwise.</returns>
         protected bool InsidePolygon(Point point, Point[] polygon)
         {
-            ArgumentNullException.ThrowIfNull(point);
-            ArgumentNullException.ThrowIfNull(polygon);
-
             var minX = polygon[0].X;
             var maxX = polygon[0].X;
             var minY = polygon[0].Y;
@@ -532,22 +479,18 @@ namespace Radzen.Blazor
         /// <inheritdoc />
         public virtual RenderFragment RenderTooltip(object data)
         {
-            var chart = RequireChart();
             var item = (TItem)data;
-
+            
             return builder =>
             {
-                if (chart.Tooltip.Shared)
+                if (Chart.Tooltip.Shared)
                 {
-                    var category = !string.IsNullOrEmpty(CategoryProperty) ? PropertyAccess.GetValue(item, CategoryProperty) : null;
-                    if (category != null)
-                    {
-                        builder.OpenComponent<ChartSharedTooltip>(0);
-                        builder.AddAttribute(1, nameof(ChartSharedTooltip.Class), TooltipClass(item));
-                        builder.AddAttribute(2, nameof(ChartSharedTooltip.Title), TooltipTitle(item));
-                        builder.AddAttribute(3, nameof(ChartSharedTooltip.ChildContent), RenderSharedTooltipItems(category));
-                        builder.CloseComponent();
-                    }
+                    var category = PropertyAccess.GetValue(item, CategoryProperty);
+                    builder.OpenComponent<ChartSharedTooltip>(0);
+                    builder.AddAttribute(1, nameof(ChartSharedTooltip.Class), TooltipClass(item));
+                    builder.AddAttribute(2, nameof(ChartSharedTooltip.Title), TooltipTitle(item));
+                    builder.AddAttribute(3, nameof(ChartSharedTooltip.ChildContent), RenderSharedTooltipItems(category));
+                    builder.CloseComponent();
                 }
                 else
                 {
@@ -565,11 +508,9 @@ namespace Radzen.Blazor
 
         private RenderFragment RenderSharedTooltipItems(object category)
         {
-            var chart = RequireChart();
-
             return builder =>
             {
-                var visibleSeries = chart.Series.Where(s => s.Visible).ToList();
+                var visibleSeries = Chart.Series.Where(s => s.Visible).ToList();
 
                 foreach (var series in visibleSeries)
                 {
@@ -583,7 +524,7 @@ namespace Radzen.Blazor
         {
             return builder =>
             {
-                var item = Items.FirstOrDefault(i => !string.IsNullOrEmpty(CategoryProperty) && object.Equals(PropertyAccess.GetValue(i, CategoryProperty), category));
+                var item = Items.FirstOrDefault(i => object.Equals(PropertyAccess.GetValue(i, CategoryProperty), category));
 
                 if (item != null)
                 {
@@ -612,7 +553,7 @@ namespace Radzen.Blazor
         /// <param name="item">The item.</param>
         protected virtual string TooltipStyle(TItem item)
         {
-            return Chart?.Tooltip?.Style ?? string.Empty;
+            return Chart.Tooltip.Style;
         }
 
         /// <summary>
@@ -621,13 +562,7 @@ namespace Radzen.Blazor
         /// <param name="item">The item.</param>
         protected virtual string TooltipClass(TItem item)
         {
-            var chart = Chart;
-            if (chart == null)
-            {
-                return "rz-series-tooltip";
-            }
-
-            return $"rz-series-{chart.Series.IndexOf(this)}-tooltip";
+            return $"rz-series-{Chart.Series.IndexOf(this)}-tooltip";
         }
 
         /// <inheritdoc />
@@ -641,8 +576,6 @@ namespace Radzen.Blazor
         /// </summary>
         protected virtual RenderFragment RenderLegendItem(bool clickable)
         {
-            var chart = RequireChart();
-            var index = chart.Series.IndexOf(this);
             var style = new List<string>();
 
             if (IsVisible == false)
@@ -653,7 +586,7 @@ namespace Radzen.Blazor
             return builder =>
             {
                 builder.OpenComponent<LegendItem>(0);
-                builder.AddAttribute(1, nameof(LegendItem.Index), index);
+                builder.AddAttribute(1, nameof(LegendItem.Index), Chart.Series.IndexOf(this));
                 builder.AddAttribute(2, nameof(LegendItem.Color), Color);
                 builder.AddAttribute(3, nameof(LegendItem.MarkerType), MarkerType);
                 builder.AddAttribute(4, nameof(LegendItem.Style), string.Join(";", style));
@@ -684,35 +617,19 @@ namespace Radzen.Blazor
         /// <inheritdoc />
         public double GetMedian()
         {
-            var values = Items.Select(Value).OrderBy(e => e).ToList();
-            if (values.Count == 0)
-            {
-                return 0;
-            }
-
-            return values[values.Count / 2];
+            return Data.Select(e => Value(e)).OrderBy(e => e).Skip(Data.Count() / 2).FirstOrDefault();
         }
 
         /// <inheritdoc />
         public double GetMean()
         {
-            return Items.Any() ? Items.Select(Value).Average() : double.NaN;
+            return Data.Select(e => Value(e)).DefaultIfEmpty(double.NaN).Average();
         }
 
         /// <inheritdoc />
         public double GetMode()
         {
-            if (!Items.Any())
-            {
-                return double.NaN;
-            }
-
-            return Items
-                .GroupBy(item => Value(item))
-                .Select(g => new { Value = g.Key, Count = g.Count() })
-                .OrderByDescending(e => e.Count)
-                .First()
-                .Value;
+            return Data.Any() ? Data.GroupBy(e => Value(e)).Select(g => new { Value = g.Key, Count = g.Count() }).OrderByDescending(e => e.Count).FirstOrDefault().Value : double.NaN;
         }
 
         /// <summary>
@@ -722,43 +639,33 @@ namespace Radzen.Blazor
         {
             double a = double.NaN, b = double.NaN;
 
-            var chart = Chart;
-            if (chart == null)
-            {
-                return (a, b);
-            }
-
-            if (Items.Any())
+            if (Data.Any())
             {
                 Func<TItem, double> X;
                 Func<TItem, double> Y;
-                if (chart.ShouldInvertAxes())
+                if (Chart.ShouldInvertAxes())
                 {
-                    var valueScale = chart.ValueScale;
-                    var categoryAccessor = Category(chart.ValueScale);
-                    X = e => chart.CategoryScale.Scale(Value(e));
-                    Y = e => valueScale.Scale(categoryAccessor(e));
+                    X = e => Chart.CategoryScale.Scale(Value(e));
+                    Y = e => Chart.ValueScale.Scale(Category(Chart.ValueScale)(e));
                 }
                 else
                 {
-                    var categoryAccessor = Category(chart.CategoryScale);
-                    X = e => chart.CategoryScale.Scale(categoryAccessor(e));
-                    Y = e => chart.ValueScale.Scale(Value(e));
+                    X = e => Chart.CategoryScale.Scale(Category(Chart.CategoryScale)(e));
+                    Y = e => Chart.ValueScale.Scale(Value(e));
                 }
 
-                var data = Items.ToList();
-                var avgX = data.Select(e => X(e)).Average();
-                var avgY = data.Select(e => Y(e)).Average();
-                var sumXY = data.Sum(e => (X(e) - avgX) * (Y(e) - avgY));
-                if (chart.ShouldInvertAxes())
+                var avgX = Data.Select(e => X(e)).Average();
+                var avgY = Data.Select(e => Y(e)).Average();
+                var sumXY = Data.Sum(e => (X(e) - avgX) * (Y(e) - avgY));
+                if (Chart.ShouldInvertAxes())
                 {
-                    var sumYSq = data.Sum(e => (Y(e) - avgY) * (Y(e) - avgY));
+                    var sumYSq = Data.Sum(e => (Y(e) - avgY) * (Y(e) - avgY));
                     b = sumXY / sumYSq;
                     a = avgX - b * avgY;
                 }
                 else
                 {
-                    var sumXSq = data.Sum(e => (X(e) - avgX) * (X(e) - avgX));
+                    var sumXSq = Data.Sum(e => (X(e) - avgX) * (X(e) - avgX));
                     b = sumXY / sumXSq;
                     a = avgY - b * avgX;
                 }
@@ -771,9 +678,7 @@ namespace Radzen.Blazor
         {
             IsVisible = !IsVisible;
 
-            var chart = Chart;
-
-            if (chart?.LegendClick.HasDelegate == true)
+            if (Chart.LegendClick.HasDelegate)
             {
                 var args = new LegendClickEventArgs
                 {
@@ -782,28 +687,18 @@ namespace Radzen.Blazor
                     IsVisible = IsVisible,
                 };
 
-                await chart.LegendClick.InvokeAsync(args);
+                await Chart.LegendClick.InvokeAsync(args);
 
                 IsVisible = args.IsVisible;
             }
 
-            if (chart != null)
-            {
-                await chart.Refresh();
-            }
+            await Chart.Refresh();
         }
 
         /// <inheritdoc />
         public string GetTitle()
         {
-            var chart = Chart;
-            if (string.IsNullOrEmpty(Title))
-            {
-                var index = chart?.Series.IndexOf(this) ?? 0;
-                return $"Series {index + 1}";
-            }
-
-            return Title;
+            return String.IsNullOrEmpty(Title) ? $"Series {Chart.Series.IndexOf(this) + 1}" : Title;
         }
 
         /// <summary>
@@ -821,9 +716,8 @@ namespace Radzen.Blazor
         /// <param name="item">The item.</param>
         protected virtual string TooltipTitle(TItem item)
         {
-            var chart = RequireChart();
-            var category = Category(chart.CategoryScale);
-            return chart.CategoryAxis.Format(chart.CategoryScale, chart.CategoryScale.Value(category(item)));
+            var category = Category(Chart.CategoryScale);
+            return Chart.CategoryAxis.Format(Chart.CategoryScale, Chart.CategoryScale.Value(category(item)));
         }
 
         /// <summary>
@@ -833,8 +727,7 @@ namespace Radzen.Blazor
         /// <returns>System.String.</returns>
         protected virtual string TooltipValue(TItem item)
         {
-            var chart = RequireChart();
-            return chart.ValueAxis.Format(chart.ValueScale, chart.ValueScale.Value(Value(item)));
+            return Chart.ValueAxis.Format(Chart.ValueScale, Chart.ValueScale.Value(Value(item)));
         }
 
         /// <summary>
@@ -843,9 +736,8 @@ namespace Radzen.Blazor
         /// <param name="item">The item.</param>
         internal virtual double TooltipX(TItem item)
         {
-            var chart = RequireChart();
-            var category = Category(chart.CategoryScale);
-            return chart.CategoryScale.Scale(category(item), true);
+            var category = Category(Chart.CategoryScale);
+            return Chart.CategoryScale.Scale(category(item), true);
         }
 
         /// <summary>
@@ -854,8 +746,7 @@ namespace Radzen.Blazor
         /// <param name="item">The item.</param>
         internal virtual double TooltipY(TItem item)
         {
-            var chart = RequireChart();
-            return chart.ValueScale.Scale(Value(item), true);
+            return Chart.ValueScale.Scale(Value(item), true);
         }
 
         /// <inheritdoc />
@@ -869,26 +760,25 @@ namespace Radzen.Blazor
                     return new { Item = item, Distance = distance };
                 }).Aggregate((a, b) => a.Distance < b.Distance ? a : b).Item;
 
-                return (retObject!,
+                return (retObject,
                     new Point() { X = TooltipX(retObject), Y = TooltipY(retObject)});
             }
 
-            return (default!, new Point());
+            return (null, null);
         }
 
         /// <inheritdoc />
         public virtual IEnumerable<ChartDataLabel> GetDataLabels(double offsetX, double offsetY)
         {
-            var chart = RequireChart();
             var list = new List<ChartDataLabel>();
 
-            foreach (var d in Items)
+            foreach (var d in Data)
             {
                 list.Add(new ChartDataLabel
                 {
                     Position = new Point { X = TooltipX(d) + offsetX, Y = TooltipY(d) + offsetY },
                     TextAnchor = "middle",
-                    Text = chart.ValueAxis.Format(chart.ValueScale, Value(d))
+                    Text = Chart.ValueAxis.Format(Chart.ValueScale, Value(d))
                 });
             }
 
@@ -903,12 +793,12 @@ namespace Radzen.Blazor
         /// <param name="defaultValue">The default value.</param>
         /// <param name="colorRange">The color range value.</param>
         /// <param name="value">The value of the item.</param>
-        protected string? PickColor(int index, IEnumerable<string>? colors, string? defaultValue = null, IList<SeriesColorRange>? colorRange = null, double value = 0.0)
+        protected string PickColor(int index, IEnumerable<string> colors, string defaultValue = null, IList<SeriesColorRange> colorRange = null, double value = 0.0)
         {
             if (colorRange != null)
             {
                 var result = colorRange.Where(r => r.Min <= value && r.Max >= value).FirstOrDefault<SeriesColorRange>();
-                return result?.Color ?? defaultValue;
+                return result != null ? result.Color : defaultValue;
             }
             else
             {
@@ -929,20 +819,18 @@ namespace Radzen.Blazor
         /// <inheritdoc />
         public async Task InvokeClick(EventCallback<SeriesClickEventArgs> handler, object data)
         {
-            var chart = RequireChart();
-            var category = Category(chart.CategoryScale);
-            var dataItem = (TItem)data;
+            var category = Category(Chart.CategoryScale);
 
             await handler.InvokeAsync(new SeriesClickEventArgs
             {
                 Data = data,
                 Title = GetTitle(),
-                Category = !string.IsNullOrEmpty(CategoryProperty) ? PropertyAccess.GetValue(data, CategoryProperty) : null,
-                Value = !string.IsNullOrEmpty(ValueProperty) ? PropertyAccess.GetValue(data, ValueProperty) : null,
+                Category = PropertyAccess.GetValue(data, CategoryProperty),
+                Value = PropertyAccess.GetValue(data, ValueProperty),
                 Point = new SeriesPoint
                 {
-                    Category = category(dataItem),
-                    Value = Value(dataItem)
+                    Category = category((TItem)data),
+                    Value = Value((TItem)data)
                 }
             });
         }

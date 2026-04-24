@@ -1,6 +1,5 @@
 using System;
 using Bunit;
-using Microsoft.AspNetCore.Components.Web;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -286,52 +285,6 @@ namespace Radzen.Blazor.Tests
 
             Assert.True(raised);
             Assert.True(object.Equals(value, newValue));
-        }
-
-        [Fact]
-        public void Numeric_Raises_ChangeEvent_OnBackspace_When_Immediate()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            ctx.JSInterop.SetupModule("_content/Radzen.Blazor/Radzen.Blazor.js");
-
-            var component = ctx.RenderComponent<RadzenNumeric<double?>>(parameters =>
-                parameters.Add(p => p.Immediate, true).Add(p => p.Value, 5));
-
-            var raised = false;
-            object newValue = 1;
-
-            ctx.JSInterop.Setup<string>("Radzen.getInputValue", _ => true).SetResult("");
-
-            component.SetParametersAndRender(parameters => parameters.Add(p => p.Change, args => { raised = true; newValue = args; }));
-
-            component.Find("input").KeyDown(new KeyboardEventArgs { Key = "Backspace", Code = "Backspace" });
-
-            Assert.True(raised);
-            Assert.Null(newValue);
-        }
-
-        [Fact]
-        public void Numeric_Raises_ChangeEvent_OnDelete_When_Immediate()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            ctx.JSInterop.SetupModule("_content/Radzen.Blazor/Radzen.Blazor.js");
-
-            var component = ctx.RenderComponent<RadzenNumeric<double?>>(parameters =>
-                parameters.Add(p => p.Immediate, true).Add(p => p.Value, 5));
-
-            var raised = false;
-            object newValue = 1;
-
-            ctx.JSInterop.Setup<string>("Radzen.getInputValue", _ => true).SetResult("");
-
-            component.SetParametersAndRender(parameters => parameters.Add(p => p.Change, args => { raised = true; newValue = args; }));
-
-            component.Find("input").KeyDown(new KeyboardEventArgs { Key = "Delete", Code = "Delete" });
-
-            Assert.True(raised);
-            Assert.Null(newValue);
         }
 
         [Fact]
@@ -667,52 +620,6 @@ namespace Radzen.Blazor.Tests
         }
 
         [Fact]
-        public void Numeric_Format_WithOptionalDecimals_PreservesValue()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            ctx.JSInterop.SetupModule("_content/Radzen.Blazor/Radzen.Blazor.js");
-
-            var component = ctx.RenderComponent<RadzenNumeric<float>>(
-                ComponentParameter.CreateParameter(nameof(RadzenNumeric<float>.Format), "0.##"),
-                ComponentParameter.CreateParameter(nameof(RadzenNumeric<float>.Culture), System.Globalization.CultureInfo.InvariantCulture)
-            );
-
-            object newValue = null;
-            component.SetParametersAndRender(parameters =>
-                parameters.Add(p => p.Change, args => { newValue = args; }));
-
-            component.Find("input").Change("10.55");
-
-            Assert.NotNull(newValue);
-            Assert.Equal(10.55f, (float)newValue, 2);
-        }
-
-        [Fact]
-        public void Numeric_Format_WithOptionalDecimals_PreservesValue_CommaCulture()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            ctx.JSInterop.SetupModule("_content/Radzen.Blazor/Radzen.Blazor.js");
-
-            var culture = System.Globalization.CultureInfo.GetCultureInfo("de-DE");
-
-            var component = ctx.RenderComponent<RadzenNumeric<float>>(
-                ComponentParameter.CreateParameter(nameof(RadzenNumeric<float>.Format), "0.##"),
-                ComponentParameter.CreateParameter(nameof(RadzenNumeric<float>.Culture), culture)
-            );
-
-            object newValue = null;
-            component.SetParametersAndRender(parameters =>
-                parameters.Add(p => p.Change, args => { newValue = args; }));
-
-            component.Find("input").Change("10,55");
-
-            Assert.NotNull(newValue);
-            Assert.Equal(10.55f, (float)newValue, 2);
-        }
-
-        [Fact]
         public void Numeric_Supports_IFormattable()
         {
             using var ctx = new TestContext();
@@ -729,89 +636,6 @@ namespace Radzen.Blazor.Tests
 
             var input = component.Find("input").GetAttribute("value");
             input.MarkupMatches(valueToTest.ToString(format));
-        }
-
-        [Fact]
-        public void Numeric_Raises_KeyDownEvent()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            ctx.JSInterop.SetupModule("_content/Radzen.Blazor/Radzen.Blazor.js");
-
-            var component = ctx.RenderComponent<RadzenNumeric<int>>(parameters => parameters.Add(p => p.Value, 5));
-
-            NumericKeyboardEventArgs raised = null;
-
-            component.SetParametersAndRender(parameters => parameters.Add(p => p.KeyDown, args => { raised = args; }));
-
-            component.Find("input").KeyDown(new KeyboardEventArgs { Key = "ArrowUp", Code = "ArrowUp" });
-
-            Assert.NotNull(raised);
-            Assert.Equal("ArrowUp", raised.OriginalEvent.Code);
-            Assert.False(raised.IsDefaultPrevented);
-        }
-
-        [Fact]
-        public void Numeric_KeyDown_PreventDefault_Suppresses_ArrowUp_Increment()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            ctx.JSInterop.SetupModule("_content/Radzen.Blazor/Radzen.Blazor.js");
-
-            var component = ctx.RenderComponent<RadzenNumeric<int>>(parameters => parameters.Add(p => p.Value, 5));
-
-            var changeRaised = false;
-
-            component.SetParametersAndRender(parameters => parameters
-                .Add(p => p.KeyDown, args => args.PreventDefault())
-                .Add(p => p.Change, _ => changeRaised = true));
-
-            component.Find("input").KeyDown(new KeyboardEventArgs { Key = "ArrowUp", Code = "ArrowUp" });
-
-            Assert.False(changeRaised);
-            Assert.Equal(5, component.Instance.Value);
-        }
-
-        [Fact]
-        public void Numeric_KeyDown_PreventDefault_Suppresses_ArrowDown_Decrement()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            ctx.JSInterop.SetupModule("_content/Radzen.Blazor/Radzen.Blazor.js");
-
-            var component = ctx.RenderComponent<RadzenNumeric<int>>(parameters => parameters.Add(p => p.Value, 5));
-
-            var changeRaised = false;
-
-            component.SetParametersAndRender(parameters => parameters
-                .Add(p => p.KeyDown, args => args.PreventDefault())
-                .Add(p => p.Change, _ => changeRaised = true));
-
-            component.Find("input").KeyDown(new KeyboardEventArgs { Key = "ArrowDown", Code = "ArrowDown" });
-
-            Assert.False(changeRaised);
-            Assert.Equal(5, component.Instance.Value);
-        }
-
-        [Fact]
-        public void Numeric_KeyDown_Without_PreventDefault_Still_Increments_On_ArrowUp()
-        {
-            using var ctx = new TestContext();
-            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-            ctx.JSInterop.SetupModule("_content/Radzen.Blazor/Radzen.Blazor.js");
-
-            var component = ctx.RenderComponent<RadzenNumeric<int>>(parameters => parameters.Add(p => p.Value, 5));
-
-            var changeRaised = false;
-
-            component.SetParametersAndRender(parameters => parameters
-                .Add(p => p.KeyDown, _ => { })
-                .Add(p => p.Change, _ => changeRaised = true));
-
-            component.Find("input").KeyDown(new KeyboardEventArgs { Key = "ArrowUp", Code = "ArrowUp" });
-
-            Assert.True(changeRaised);
-            Assert.Equal(6, component.Instance.Value);
         }
     }
 }

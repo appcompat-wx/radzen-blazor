@@ -1,5 +1,4 @@
 
-using System;
 using System.Collections.Generic;
 
 namespace Radzen.Blazor.Markdown;
@@ -30,7 +29,6 @@ public abstract class BlockContainer : Block
     /// <returns>The added block.</returns>
     public virtual T Add<T>(T block) where T : Block
     {
-        ArgumentNullException.ThrowIfNull(block);
         children.Add(block);
 
         block.Parent = this;
@@ -45,8 +43,6 @@ public abstract class BlockContainer : Block
     /// <param name="target">The block to replace with.</param>
     public void Replace(Block source, Block target)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(target);
         var index = children.IndexOf(source);
 
         if (index >= 0)

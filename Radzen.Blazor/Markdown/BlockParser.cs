@@ -482,3 +482,10 @@ class BlockParser
         return true;
     }
 }
+
+enum BlockStart
+{
+    Skip,
+    Container,
+    Leaf
+}

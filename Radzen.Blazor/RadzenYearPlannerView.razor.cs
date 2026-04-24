@@ -26,15 +26,13 @@ namespace Radzen.Blazor
         {
             get
             {
-                if (Scheduler == null) return "";
-                var culture = Scheduler.Culture ?? System.Globalization.CultureInfo.CurrentCulture;
                 if (StartMonth == Month.January)
                 {
-                    return Scheduler.CurrentDate.ToString("yyyy", culture);
+                    return Scheduler.CurrentDate.ToString("yyyy", Scheduler.Culture);
                 }
                 else
                 {
-                    return (Scheduler.CurrentDate.Month < (int)StartMonth + 1) ? $"{Scheduler.CurrentDate.AddYears(-1).ToString("yyyy", culture)}-{Scheduler.CurrentDate.ToString("yyyy", culture)}" : $"{Scheduler.CurrentDate.ToString("yyyy", culture)}-{Scheduler.CurrentDate.AddYears(+1).ToString("yyyy", culture)}";
+                    return (Scheduler.CurrentDate.Month < (int)StartMonth + 1) ? $"{Scheduler.CurrentDate.AddYears(-1).ToString("yyyy", Scheduler.Culture)}-{Scheduler.CurrentDate.ToString("yyyy", Scheduler.Culture)}" : $"{Scheduler.CurrentDate.ToString("yyyy", Scheduler.Culture)}-{Scheduler.CurrentDate.AddYears(+1).ToString("yyyy", Scheduler.Culture)}";
                 }
             }
         }
@@ -62,7 +60,18 @@ namespace Radzen.Blazor
         {
             get
             {
-                return Scheduler == null ? DateTime.Today : GetYearRange().viewStart;
+                if(StartMonth == Month.January)
+                {
+                    var d = new DateTime(Scheduler.CurrentDate.Date.Year, 1, 1).StartOfWeek();
+                    if (d.DayOfWeek == DateTimeFormatInfo.CurrentInfo.FirstDayOfWeek) d.AddDays(-7);
+                    return d;
+                }
+                else
+                {
+                    var d = new DateTime(Scheduler.CurrentDate.Date.Year + (Scheduler.CurrentDate.Month < (int)StartMonth + 1 ? -1 : 0), (int)StartMonth + 1, 1).StartOfWeek();
+                    if (d.DayOfWeek == DateTimeFormatInfo.CurrentInfo.FirstDayOfWeek) d.AddDays(-7);
+                    return d;
+                }
             }
         }
 
@@ -71,7 +80,9 @@ namespace Radzen.Blazor
         {
             get
             {
-                return Scheduler == null ? DateTime.Today : GetYearRange().viewEnd;
+                var realFirstYear = StartDate.AddDays(7);
+                var d = StartDate.AddDays(DateTime.IsLeapYear(realFirstYear.Year) || DateTime.IsLeapYear(realFirstYear.Year + 1) ? 366 : 365).EndOfWeek();
+                return d;
             }
         }
 
@@ -85,13 +96,13 @@ namespace Radzen.Blazor
         /// <inheritdoc />
         public override DateTime Next()
         {
-            return Scheduler?.CurrentDate.Date.AddYears(1) ?? DateTime.Today.AddYears(1);
+            return Scheduler.CurrentDate.Date.AddYears(1);
         }
 
         /// <inheritdoc />
         public override DateTime Prev()
         {
-            return Scheduler?.CurrentDate.Date.AddYears(-1) ?? DateTime.Today.AddYears(-1);
+            return Scheduler.CurrentDate.Date.AddYears(-1);
         }
     }
 }

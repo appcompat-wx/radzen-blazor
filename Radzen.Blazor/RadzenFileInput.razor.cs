@@ -10,33 +10,12 @@ using System.Linq;
 namespace Radzen.Blazor
 {
     /// <summary>
-    /// A file input component that reads selected files and binds their content as base64 strings or byte arrays.
-    /// RadzenFileInput provides client-side file reading without server upload, ideal for form fields or immediate file processing.
-    /// Unlike RadzenUpload which sends files to a server, FileInput reads files on the client and binds the content to a property.
-    /// Useful for form integration (including file content in form models without separate upload), client-side processing (processing files in browser for image preview, parsing, etc.),
-    /// embedded storage (storing file content in database as base64 or binary), and avoiding server-side upload endpoints when file content is part of form data.
-    /// Reads the selected file and binds it as TValue = string for base64-encoded data URL (e.g., "data:image/png;base64,iVBORw0K...") or TValue = byte[] for raw binary file content.
-    /// For image files, automatically shows a preview. Use MaxFileSize to limit file size.
+    /// RadzenFileInput component.
     /// </summary>
-    /// <typeparam name="TValue">The type of the bound value. Use string for base64-encoded content or byte[] for binary data.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <example>
-    /// File input binding to string (base64):
     /// <code>
-    /// &lt;RadzenFileInput @bind-Value=@model.PhotoData TValue="string" /&gt;
-    /// @code {
-    ///     class Employee
-    ///     {
-    ///         public string PhotoData { get; set; } // Contains base64 image data
-    ///     }
-    ///     Employee model = new Employee();
-    /// }
-    /// </code>
-    /// File input binding to byte array:
-    /// <code>
-    /// &lt;RadzenFileInput @bind-Value=@fileContent TValue="byte[]" Accept="image/*" MaxFileSize="2000000" /&gt;
-    /// @code {
-    ///     byte[] fileContent;
-    /// }
+    /// &lt;RadzenFileInput @bind-Value=@employee.Photo TValue="string" Change=@(args => Console.WriteLine($"File content as base64 string: {args}")) /&gt;
     /// </code>
     /// </example>
     public partial class RadzenFileInput<TValue> : FormComponent<TValue>
@@ -46,7 +25,7 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The attributes.</value>
         [Parameter]
-        public IReadOnlyDictionary<string, object>? InputAttributes { get; set; }
+        public IReadOnlyDictionary<string, object> InputAttributes { get; set; }
 
         /// <summary>
         /// Gets or sets the choose button text.
@@ -74,17 +53,26 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The title.</value>
         [Parameter]
-        public string? Title { get; set; }
+        public string Title { get; set; }
 
-        string ChooseClass => ClassList.Create("rz-fileupload-choose rz-button rz-secondary")
-                                       .AddDisabled(Disabled)
-                                       .ToString();
-        string ButtonClass => ClassList.Create("rz-button rz-button-icon-only rz-base rz-shade-default")
-                                       .AddDisabled(Disabled)
-                                       .ToString();
+        /// <summary>
+        /// Gets the choose class list.
+        /// </summary>
+        /// <value>The choose class list.</value>
+        ClassList ChooseClassList => ClassList.Create("rz-fileupload-choose rz-button rz-secondary")
+                                              .AddDisabled(Disabled);
+        /// <summary>
+        /// Gets the button class list.
+        /// </summary>
+        /// <value>The button class list.</value>
+        ClassList ButtonClassList => ClassList.Create("rz-button rz-button-icon-only rz-base rz-shade-default")
+                                              .AddDisabled(Disabled);
 
         /// <inheritdoc />
-        protected override string GetComponentCssClass() => GetClassList("rz-fileupload").ToString();
+        protected override string GetComponentCssClass()
+        {
+            return GetClassList("rz-fileupload").ToString();
+        }
 
         /// <summary>
         /// Gets file input reference.
@@ -101,11 +89,11 @@ namespace Radzen.Blazor
                 }
                 else if (Value is string)
                 {
-                    return $"{Value}".StartsWith("data:image", StringComparison.Ordinal);
+                    return $"{Value}".StartsWith("data:image");
                 }
                 else if (Value is byte[])
                 {
-                    return $"{System.Text.Encoding.Default.GetString((byte[])(object)Value)}".StartsWith("data:image", StringComparison.Ordinal);
+                    return $"{System.Text.Encoding.Default.GetString((byte[])(object)Value)}".StartsWith("data:image");
                 }
 
                 return false;
@@ -125,7 +113,7 @@ namespace Radzen.Blazor
                     return System.Text.Encoding.Default.GetString(bytes);
                 }
 
-                return Value.ToString() ?? string.Empty;
+                return Value.ToString();
             }
         }
 
@@ -133,7 +121,6 @@ namespace Radzen.Blazor
         {
             string uploadValue;
 
-            if (JSRuntime == null) return;
             try
             {
                 uploadValue = await JSRuntime.InvokeAsync<string>("Radzen.readFileAsBase64", fileUpload, MaxFileSize, MaxWidth, MaxHeight);
@@ -172,7 +159,6 @@ namespace Radzen.Blazor
             }
 
             var file = files.FirstOrDefault();
-            if (file == null) return;
 
             FileSize = file.Size;
             await FileSizeChanged.InvokeAsync(FileSize);
@@ -183,7 +169,7 @@ namespace Radzen.Blazor
             await OnChange();
         }
 
-        private bool visibleChanged;
+        private bool visibleChanged = false;
 
         /// <inheritdoc />
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -194,7 +180,7 @@ namespace Radzen.Blazor
             {
                 visibleChanged = false;
 
-                if (Visible && JSRuntime != null)
+                if (Visible)
                 {
                     await JSRuntime.InvokeVoidAsync("Radzen.uploads", Reference, Name ?? GetId());
                 }
@@ -225,7 +211,7 @@ namespace Radzen.Blazor
 
         bool clicking;
         /// <summary>
-        /// Handles the image click event.
+        /// Handles the <see cref="E:ImageClick" /> event.
         /// </summary>
         /// <param name="args">The <see cref="MouseEventArgs"/> instance containing the event data.</param>
         public async Task OnImageClick(MouseEventArgs args)
@@ -247,23 +233,9 @@ namespace Radzen.Blazor
             }
         }
 
-        async Task OnImageKeyDown(KeyboardEventArgs args)
-        {
-            if (!ImageClick.HasDelegate)
-            {
-                return;
-            }
-
-            var key = args.Code != null ? args.Code : args.Key;
-            if (key == "Enter" || key == "Space")
-            {
-                await OnImageClick(new MouseEventArgs());
-            }
-        }
-
         async System.Threading.Tasks.Task Remove(EventArgs args)
         {
-            Value = default(TValue)!;
+            Value = default(TValue);
             FileSize = null;
             FileName = null;
 
@@ -275,10 +247,7 @@ namespace Radzen.Blazor
 
             await FileNameChanged.InvokeAsync(FileName);
 
-            if (JSRuntime != null)
-            {
-                await JSRuntime.InvokeVoidAsync("Radzen.removeFileFromFileInput", fileUpload);
-            }
+            await JSRuntime.InvokeVoidAsync("Radzen.removeFileFromFileInput", fileUpload);
 
             StateHasChanged();
         }
@@ -323,7 +292,7 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The image file name.</value>
         [Parameter]
-        public string? FileName { get; set; }
+        public string FileName { get; set; }
 
         /// <summary>
         /// Gets or sets the FileName changed.

@@ -22,9 +22,8 @@ namespace Radzen
         /// <exception cref="Exception"></exception>
         /// <exception cref="Exception">Unable to parse the response.</exception>
         /// <exception cref="Exception"></exception>
-        public static async Task<T?> ReadAsync<T>(this HttpResponseMessage response)
+        public static async Task<T> ReadAsync<T>(this HttpResponseMessage response)
         {
-            ArgumentNullException.ThrowIfNull(response);
             try
             {
                 response.EnsureSuccessStatusCode();
@@ -43,8 +42,7 @@ namespace Radzen
                 var responseAsString = await response.Content.ReadAsStringAsync();
                 if (!string.IsNullOrEmpty(responseAsString))
                 {
-                    var mediaType = response.Content.Headers.ContentType?.MediaType;
-                    if (string.Equals(mediaType, "application/json", StringComparison.OrdinalIgnoreCase))
+                    if (response.Content.Headers.ContentType.MediaType == "application/json")
                     {
                         JsonDocument json;
                         try
@@ -53,7 +51,7 @@ namespace Radzen
                         }
                         catch
                         {
-                            throw new InvalidOperationException("Unable to parse the response.");
+                            throw new Exception("Unable to parse the response.");
                         }
 
                         JsonElement error;
@@ -62,14 +60,13 @@ namespace Radzen
                             JsonElement message;
                             if (error.TryGetProperty("message", out message))
                             {
-                                var messageText = message.GetString();
-                                throw new InvalidOperationException(messageText ?? "An error occurred.");
+                                throw new Exception(message.GetString());
                             }
                         }
                     }
                     else
                     {
-                        XElement? error = null;
+                        XElement error = null;
                         try
                         {
                             var xml = XDocument.Parse(responseAsString);
@@ -85,12 +82,12 @@ namespace Radzen
                         }
                         catch
                         {
-                            throw new InvalidOperationException("Unable to parse the response.");
+                            throw new Exception("Unable to parse the response.");
                         }
 
                         if (error != null)
                         {
-                            throw new InvalidOperationException(error.Value);
+                            throw new Exception(error.Value);
                         }
                     }
                 }

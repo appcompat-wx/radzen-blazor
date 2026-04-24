@@ -1,5 +1,4 @@
-using Microsoft.AspNetCore.Components;
-using System;
+﻿using Microsoft.AspNetCore.Components;
 using System.Threading.Tasks;
 
 namespace Radzen.Blazor
@@ -14,56 +13,56 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The template.</value>
         [Parameter]
-        public RenderFragment<RadzenSelectBarItem>? Template { get; set; }
+        public RenderFragment<RadzenSelectBarItem> Template { get; set; }
 
         /// <summary>
         /// Gets or sets the icon.
         /// </summary>
         /// <value>The icon.</value>
         [Parameter]
-        public string? Icon { get; set; }
+        public string Icon { get; set; }
 
         /// <summary>
         /// Gets or sets the icon color.
         /// </summary>
         /// <value>The icon color.</value>
         [Parameter]
-        public string? IconColor { get; set; }
+        public string IconColor { get; set; }
 
         /// <summary>
         /// Gets or sets the image.
         /// </summary>
         /// <value>The image.</value>
         [Parameter]
-        public string? Image { get; set; }
+        public string Image { get; set; }
 
         /// <summary>
         /// Gets or sets the text.
         /// </summary>
         /// <value>The text.</value>
         [Parameter]
-        public string? ImageAlternateText { get; set; } = "image";
+        public string ImageAlternateText { get; set; } = "image";
 
         /// <summary>
         /// Gets or sets the image style.
         /// </summary>
         /// <value>The image style.</value>
         [Parameter]
-        public string? ImageStyle { get; set; }
+        public string ImageStyle { get; set; }
 
         /// <summary>
         /// Gets or sets the text.
         /// </summary>
         /// <value>The text.</value>
         [Parameter]
-        public string? Text { get; set; }
+        public string Text { get; set; }
 
         /// <summary>
         /// Gets or sets the value.
         /// </summary>
         /// <value>The value.</value>
         [Parameter]
-        public object? Value { get; set; }
+        public object Value { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="RadzenSelectBarItem"/> is disabled.
@@ -72,25 +71,25 @@ namespace Radzen.Blazor
         [Parameter]
         public bool Disabled { get; set; }
 
-        IRadzenSelectBar? selectBar;
+        IRadzenSelectBar _selectBar;
 
         /// <summary>
         /// Gets or sets the select bar.
         /// </summary>
         /// <value>The select bar.</value>
         [CascadingParameter]
-        public IRadzenSelectBar? SelectBar
+        public IRadzenSelectBar SelectBar
         {
             get
             {
-                return selectBar;
+                return _selectBar;
             }
             set
             {
-                if (selectBar != value)
+                if (_selectBar != value)
                 {
-                    selectBar = value;
-                    selectBar?.AddItem(this);
+                    _selectBar = value;
+                    _selectBar.AddItem(this);
                 }
             }
         }
@@ -102,7 +101,6 @@ namespace Radzen.Blazor
         {
             base.Dispose();
             SelectBar?.RemoveItem(this);
-            GC.SuppressFinalize(this);
         }
 
         internal void SetText(string value)
@@ -115,7 +113,7 @@ namespace Radzen.Blazor
             Value = value;
         }
 
-        internal string? GetItemId()
+        internal string GetItemId()
         {
             return GetId();
         }
@@ -133,7 +131,7 @@ namespace Radzen.Blazor
 
             await base.SetParametersAsync(parameters);
 
-            if (shouldRefresh && SelectBar != null)
+            if (shouldRefresh)
             {
                 SelectBar.Refresh();
             }

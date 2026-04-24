@@ -81,11 +81,6 @@ $text: (
       #{$key}: var(--rz-text-#{$element}-#{$key});
     }
   }
-  .rz-stack {
-    > .rz-text-#{$element} {
-      margin-block: 0;
-    }
-  }
 }
 
 // Text Align

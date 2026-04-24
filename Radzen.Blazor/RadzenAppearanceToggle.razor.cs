@@ -10,7 +10,7 @@ namespace Radzen.Blazor
     public partial class RadzenAppearanceToggle : RadzenComponent
     {
         [Inject]
-        private ThemeService? ThemeService { get; set; }
+        private ThemeService ThemeService { get; set; }
         /// <summary>
         /// Gets or sets the switch button variant.
         /// </summary>
@@ -43,15 +43,15 @@ namespace Radzen.Blazor
         /// Gets or sets the light theme. Not set by default - the component uses the light version of the current theme.
         /// </summary>
         [Parameter]
-        public string? LightTheme { get; set; }
+        public string LightTheme { get; set; }
 
         /// <summary>
         /// Gets or sets the dark theme. Not set by default - the component uses the dark version of the current theme.
         /// </summary>
         [Parameter]
-        public string? DarkTheme { get; set; }
+        public string DarkTheme { get; set; }
 
-        private string CurrentLightTheme => LightTheme ?? ThemeService?.Theme?.ToLowerInvariant() switch
+        private string CurrentLightTheme => LightTheme ?? ThemeService.Theme?.ToLowerInvariant() switch
         {
             "dark" => "default",
             "material-dark" => "material",
@@ -60,10 +60,10 @@ namespace Radzen.Blazor
             "software-dark" => "software",
             "humanistic-dark" => "humanistic",
             "standard-dark" => "standard",
-            _ => ThemeService?.Theme ?? string.Empty,
+            _ => ThemeService.Theme,
         };
 
-        private string CurrentDarkTheme => DarkTheme ?? ThemeService?.Theme?.ToLowerInvariant() switch
+        private string CurrentDarkTheme => DarkTheme ?? ThemeService.Theme?.ToLowerInvariant() switch
         {
             "default" => "dark",
             "material" => "material-dark",
@@ -72,7 +72,7 @@ namespace Radzen.Blazor
             "software" => "software-dark",
             "humanistic" => "humanistic-dark",
             "standard" => "standard-dark",
-            _ => ThemeService?.Theme ?? string.Empty,
+            _ => ThemeService.Theme,
         };
 
         private bool value;
@@ -82,27 +82,21 @@ namespace Radzen.Blazor
         {
             base.OnInitialized();
 
-            if (ThemeService != null)
-            {
-                ThemeService.ThemeChanged += OnThemeChanged;
+            ThemeService.ThemeChanged += OnThemeChanged;
 
-                value = ThemeService.Theme != CurrentDarkTheme;
-            }
+            value = ThemeService.Theme != CurrentDarkTheme;
         }
 
         private void OnThemeChanged()
         {
-            if (ThemeService != null)
-            {
-                value = ThemeService.Theme != CurrentDarkTheme;
-            }
+            value = ThemeService.Theme != CurrentDarkTheme;
 
             StateHasChanged();
         }
 
         void OnChange(bool value)
         {
-            ThemeService?.SetTheme(value ? CurrentLightTheme : CurrentDarkTheme);
+            ThemeService.SetTheme(value ? CurrentLightTheme : CurrentDarkTheme);
         }
 
         private string Icon => value ? "dark_mode" : "light_mode";
@@ -112,12 +106,7 @@ namespace Radzen.Blazor
         {
             base.Dispose();
 
-            if (ThemeService != null)
-            {
-                ThemeService.ThemeChanged -= OnThemeChanged;
-            }
-
-            GC.SuppressFinalize(this);
+            ThemeService.ThemeChanged -= OnThemeChanged;
         }
     }
 }

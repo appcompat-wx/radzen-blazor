@@ -8,23 +8,23 @@ namespace Radzen.Blazor
     /// </summary>
     public class RadzenStepsItem : RadzenComponent
     {
-        private string? text;
+        private string _text;
         /// <summary>
         /// Gets or sets the text.
         /// </summary>
         /// <value>The text.</value>
         [Parameter]
-        public string? Text
+        public string Text
         {
             get
             {
-                return text;
+                return _text;
             }
             set
             {
-                if (text != value)
+                if (_text != value)
                 {
-                    text = value;
+                    _text = value;
                     Steps?.Refresh();
                 }
             }
@@ -33,63 +33,51 @@ namespace Radzen.Blazor
         /// <summary>
         /// Gets or sets the title attribute.
         /// </summary>
-        public string? Title { get; set; }
+        public string Title { get; set; } = null;
         
         /// <summary>
         /// Gets or sets the aria-label attribute.
         /// </summary>
-        public string? AriaLabel { get; set; }
+        public string AriaLabel { get; set; } = null;
         
         /// <summary>
         /// Gets or sets text of the next button.
         /// </summary>
         [Parameter]
-        public string? NextText { get; set; } = null;
+        public string NextText { get; set; } = null;
 
         /// <summary>
         /// Gets or sets the title attribute of the next button.
         /// </summary>
-        public string? NextTitle { get; set; }
+        public string NextTitle { get; set; } = null;
         
         /// <summary>
         /// Gets or sets the aria-label attribute of the next button.
         /// </summary>
-        public string? NextAriaLabel { get; set; }
+        public string NextAriaLabel { get; set; } = null;
         
         /// <summary>
         /// Gets or sets text of the previous button.
         /// </summary>
         [Parameter]
-        public string? PreviousText { get; set; } = null;
+        public string PreviousText { get; set; } = null;
 
         /// <summary>
         /// Gets or sets the title attribute of the previous button.
         /// </summary>
-        public string? PreviousTitle { get; set; }
+        public string PreviousTitle { get; set; } = null;
         
         /// <summary>
         /// Gets or sets the aria-label attribute of the previous button.
         /// </summary>
-        public string? PreviousAriaLabel { get; set; }
-
-        /// <summary>
-        /// Gets or sets the callback that is invoked when navigating to the next step from this step.
-        /// </summary>
-        [Parameter]
-        public EventCallback OnNextStep { get; set; }
-
-        /// <summary>
-        /// Gets or sets the callback that is invoked when navigating to the previous step from this step.
-        /// </summary>
-        [Parameter]
-        public EventCallback OnPreviousStep { get; set; }
+        public string PreviousAriaLabel { get; set; } = null;
         
         /// <summary>
         /// Gets or sets the template.
         /// </summary>
         /// <value>The template.</value>
         [Parameter]
-        public RenderFragment<RadzenStepsItem>? Template { get; set; }
+        public RenderFragment<RadzenStepsItem> Template { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="RadzenStepsItem"/> is selected.
@@ -98,7 +86,7 @@ namespace Radzen.Blazor
         [Parameter]
         public bool Selected { get; set; }
 
-        private bool visible = true;
+        bool _visible = true;
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="RadzenComponent" /> is visible.
         /// </summary>
@@ -108,19 +96,19 @@ namespace Radzen.Blazor
         {
             get
             {
-                return visible;
+                return _visible;
             }
             set
             {
-                if (visible != value)
+                if (_visible != value)
                 {
-                    visible = value;
+                    _visible = value;
                     Steps?.Refresh();
                 }
             }
         }
 
-        private bool disabled;
+        bool _disabled;
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="RadzenStepsItem"/> is disabled.
         /// </summary>
@@ -130,13 +118,13 @@ namespace Radzen.Blazor
         {
             get
             {
-                return disabled;
+                return _disabled;
             }
             set
             {
-                if (disabled != value)
+                if (_disabled != value)
                 {
-                    disabled = value;
+                    _disabled = value;
                     Steps?.Refresh();
                 }
             }
@@ -147,27 +135,27 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The child content.</value>
         [Parameter]
-        public RenderFragment? ChildContent { get; set; }
+        public RenderFragment ChildContent { get; set; }
 
-        private RadzenSteps? steps;
+        RadzenSteps _steps;
 
         /// <summary>
         /// Gets or sets the steps.
         /// </summary>
         /// <value>The steps.</value>
         [CascadingParameter]
-        public RadzenSteps? Steps
+        public RadzenSteps Steps
         {
             get
             {
-                return steps;
+                return _steps;
             }
             set
             {
-                if (steps != value && value != null)
+                if (_steps != value)
                 {
-                    steps = value;
-                    steps.AddStep(this);
+                    _steps = value;
+                    _steps.AddStep(this);
                 }
             }
         }
@@ -203,7 +191,6 @@ namespace Radzen.Blazor
         /// <inheritdoc />
         protected override string GetComponentCssClass()
         {
-            if (Steps == null) return $"rz-steps-item {(Disabled ? "rz-state-disabled" : string.Empty)}";
             return $"rz-steps-item {(Steps.StepsCollection.IndexOf(this) == Steps.SelectedIndex ? "rz-state-highlight rz-steps-current" : string.Empty)} {(Disabled ? "rz-state-disabled" : string.Empty)}";
         }
     }

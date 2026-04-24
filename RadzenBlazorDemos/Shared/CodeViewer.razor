@@ -1,13 +1,6 @@
 @using System.Text.RegularExpressions;
-@using System.IO;
-@using System.Net.Http;
-@using System.Reflection;
-@using Microsoft.Extensions.DependencyInjection;
-@using System.Linq;
 @inject IJSRuntime JSRuntime
-@inject HttpClient Http
-@inject NavigationManager NavigationManager
-@inject IServiceProvider ServiceProvider
+@inject CompilerService Compiler
 
 <RadzenRow class="rz-p-2" Gap="0.5rem" Style="border-bottom: var(--rz-border-disabled);">
     <RadzenColumn>
@@ -18,7 +11,6 @@
                 Copy
             </button>
             <RadzenButton Visible=@(!ReadOnly) Disabled=@isBusy Click="@Reset" Text="Reset" Icon="refresh" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" class="rz-text-truncate" />
-            <RadzenLink Visible=@(!ReadOnly) Path="@($"/playground?example={Uri.EscapeDataString(Path.GetFileNameWithoutExtension(PageName))}")" Text="Open in Playground" target="_blank" class="rz-button rz-button-xs rz-variant-outlined rz-base rz-shade-default rz-text-truncate" Title="Open in Playground" />
         </RadzenStack>
     </RadzenColumn>
     <RadzenColumn>
@@ -29,21 +21,9 @@
     else
     {
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        @if (ComponentName == "Dialog" || ComponentName == "Tooltip" || ComponentName == "Notification" || ComponentName == "ContextMenu")
-        {
-            <a target="blank" class="rz-button rz-button-xs rz-variant-text rz-base rz-shade-default rz-text-truncate rz-text-capitalize" href=@($"https://github.com/radzenhq/radzen-blazor/blob/master/Radzen.Blazor/Radzen{ComponentName}.razor") title=@($"View Radzen{ComponentName} component source code in new tab") >
-                <RadzenIcon Icon="open_in_new" /> @($"Radzen{ComponentName}") Source
-            </a>
-            <a target="blank" class="rz-button rz-button-xs rz-variant-text rz-base rz-shade-default rz-text-truncate rz-text-capitalize" href=@($"https://github.com/radzenhq/radzen-blazor/blob/master/Radzen.Blazor/{ComponentName}Service.cs") title=@($"View {ComponentName}Service source code in new tab") >
-                <RadzenIcon Icon="open_in_new" /> @($"{ComponentName}Service") Source
-            </a>
-        }
-
-        else {
             <a target="blank" class="rz-button rz-button-xs rz-variant-text rz-base rz-shade-default rz-text-truncate rz-text-capitalize" href="@ComponentSourceHref" title=@($"View Radzen{ComponentName} component source code in new tab") >
                 <RadzenIcon Icon="open_in_new" /> @($"Radzen{ComponentName}") Source
             </a>
-        }
         </RadzenStack>
     }
     </RadzenColumn>
@@ -56,7 +36,6 @@
     private string source;
     private string error;
     private string language = "razor";
-    private CompilerServiceFactory compilerFactory;
 
     [Parameter]
     public EventCallback<Type> Compiled { get; set; }
@@ -82,7 +61,7 @@
 
     string ComponentSourceHref => ComponentSource ?? $"https://github.com/radzenhq/radzen-blazor/blob/master/Radzen.Blazor/Radzen{ComponentName}.razor.cs";
 
-    string PageSourceHref => Path.ChangeExtension(PageName != null && PageName.StartsWith("/") ? PageName : $"/demos/Pages/{PageName}", ".txt");
+    string PageSourceHref => $"https://raw.githubusercontent.com/radzenhq/radzen-blazor/master/RadzenBlazorDemos/Pages/{PageName}";
     protected override async Task OnParametersSetAsync()
     {
         language = PageName == null ? "razor" :  PageName.EndsWith(".razor") ? "razor" : "csharp";
@@ -101,7 +80,9 @@
 
     async Task<string> Fetch()
     {
-        return await Http.GetStringAsync(PageSourceHref);
+        using var http = new HttpClient();
+
+        return await http.GetStringAsync(PageSourceHref);
     }
 
     string Clean(string source)
@@ -125,8 +106,6 @@
         await OnValueChanged(source);
     }
 
-
-
     bool isBusy;
 
     async Task Run()
@@ -139,10 +118,7 @@
 
             await Task.Yield();
 
-            compilerFactory ??= new CompilerServiceFactory(ServiceProvider, NavigationManager);
-            var compiler = await compilerFactory.GetCompilerAsync();
-
-            var type = await compiler.CompileAsync(source);
+            var type = await Compiler.CompileAsync(source);
 
             await Compiled.InvokeAsync(type);
 

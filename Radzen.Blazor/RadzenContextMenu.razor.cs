@@ -41,13 +41,13 @@ namespace Radzen.Blazor
         /// Gets or sets the unique identifier.
         /// </summary>
         /// <value>The unique identifier.</value>
-        public string? UniqueID { get; set; }
+        public string UniqueID { get; set; }
 
         /// <summary>
         /// Gets or sets the ContextMenuService.
         /// </summary>
         /// <value>The ContextMenuService.</value>
-        [Inject] private ContextMenuService? Service { get; set; }
+        [Inject] private ContextMenuService Service { get; set; }
 
         List<ContextMenu> menus = new List<ContextMenu>();
 
@@ -72,7 +72,7 @@ namespace Radzen.Blazor
             IsJSRuntimeAvailable = true;
 
             var menu = menus.LastOrDefault();
-            if (menu != null && menu.MouseEventArgs != null)
+            if (menu != null)
             {
                 await JSRuntime.InvokeVoidAsync("Radzen.openContextMenu",
                     menu.MouseEventArgs.ClientX,
@@ -83,7 +83,7 @@ namespace Radzen.Blazor
             }
         }
 
-        private DotNetObjectReference<RadzenContextMenu>? reference;
+        private DotNetObjectReference<RadzenContextMenu> reference;
 
         /// <summary>
         /// Gets the reference for the current component.
@@ -123,7 +123,7 @@ namespace Radzen.Blazor
         [JSInvokable("RadzenContextMenu.CloseMenu")]
         public void CloseMenu()
         {
-            Service?.Close(); 
+            Service.Close(); 
         }
 
         /// <inheritdoc />
@@ -147,25 +147,19 @@ namespace Radzen.Blazor
                 { }
             }
 
-            if (Service != null)
-            {
-                Service.OnOpen -= OnOpen;
-                Service.OnClose -= OnClose;
-                Service.OnNavigate -= OnNavigate;
-            }
+            Service.OnOpen -= OnOpen;
+            Service.OnClose -= OnClose;
+            Service.OnNavigate -= OnNavigate;
         }
 
         /// <inheritdoc />
         protected override void OnInitialized()
         {
-            UniqueID = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Replace("/", "-", StringComparison.Ordinal).Replace("+", "-", StringComparison.Ordinal).Substring(0, 10);
+            UniqueID = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Replace("/", "-").Replace("+", "-").Substring(0, 10);
 
-            if (Service != null)
-            {
-                Service.OnOpen += OnOpen;
-                Service.OnClose += OnClose;
-                Service.OnNavigate += OnNavigate;
-            }
+            Service.OnOpen += OnOpen;
+            Service.OnClose += OnClose;
+            Service.OnNavigate += OnNavigate;
         }
 
         void OnOpen(MouseEventArgs args, ContextMenuOptions options)
@@ -180,10 +174,7 @@ namespace Radzen.Blazor
 
         void OnNavigate()
         {
-            if (UniqueID != null)
-            {
-                JSRuntime.InvokeVoid("Radzen.closePopup", UniqueID);
-            }
+            JSRuntime.InvokeVoidAsync("Radzen.closePopup", UniqueID);
         }
     }
 }

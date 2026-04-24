@@ -6,28 +6,17 @@ namespace Radzen.Blazor
 {
     internal class OrdinalScale : LinearScale
     {
-        public IList<object>? Data { get; set; }
+        public IList<object> Data { get; set; }
 
         public override object Value(double value)
         {
-            if (Data == null)
-            {
-                return default!;
-            }
-
-            var index = Convert.ToInt32(value);
-            if (index < 0 || index >= Data.Count)
-            {
-                return default!;
-            }
-
-            return Data[index];
+            return Data.ElementAtOrDefault(Convert.ToInt32(value));
         }
 
         public override (double Start, double End, double Step) Ticks(int distance)
         {
             var start = -1;
-            var end = Data?.Count ?? 0;
+            var end = Data.Count;
             var step = 1;
 
             return (start, end, step);

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using System;
 
 namespace Radzen.Blazor
 {
@@ -13,7 +12,7 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The text.</value>
         [Parameter]
-        public string? Text { get; set; }
+        public string Text { get; set; }
 
         /// <summary>
         /// Sets the axis with this configuration applies to.
@@ -24,8 +23,6 @@ namespace Radzen.Blazor
         {
             set
             {
-                ArgumentNullException.ThrowIfNull(value);
-
                 value.Title = this;
             }
         }

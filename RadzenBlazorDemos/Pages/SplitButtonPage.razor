@@ -1,10 +1,11 @@
-@page "/splitbutton"
+﻿@page "/splitbutton"
+@page "/docs/guides/components/splitbutton.html"
 
 <RadzenText TextStyle="TextStyle.H2" TagName="TagName.H1" class="rz-pt-8">
-    Blazor SplitButton
+    SplitButton
 </RadzenText>
-<RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.P" class="rz-pb-4">
-    Primary action button with a dropdown menu for additional options.
+<RadzenText SplitButtonTextStyle="TextStyle.Subtitle1" class="rz-pb-4">
+    Demonstration and configuration of the Radzen Blazor <strong>SplitButton</strong> component.
 </RadzenText>
 
 <RadzenText Anchor="splitbutton#filled" TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-pt-8">
@@ -103,7 +104,7 @@
 <RadzenText TextStyle="TextStyle.Body1" class="rz-mb-8">
     Customize the dropdown icon of SplitButton. Use <code>DropDownIcon</code> parameter to set the icon.
 </RadzenText>
-<RadzenExample ComponentName="SplitButton" Example="SplitButtonDropDownIcon">
+<RadzenExample ComponentName="SplitButton" Example="CustomizeSplitButtonDropDownIcon">
     <SplitButtonDropDownIcon />
 </RadzenExample>
 

@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -19,7 +18,7 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The child content.</value>
         [Parameter]
-        public RenderFragment? ChildContent
+        public RenderFragment ChildContent
         {
             get; set;
         }
@@ -37,15 +36,9 @@ namespace Radzen.Blazor
         public double? Height { get; set; }
 
         /// <summary>
-        /// Gets whether the gauge is in a right-to-left layout context.
-        /// Detected automatically from the document direction and updated dynamically.
-        /// </summary>
-        internal bool IsRTL { get; private set; }
-
-        /// <summary>
         /// The width and height are set
         /// </summary>
-        bool widthAndHeightAreSet;
+        bool widthAndHeightAreSet = false;
         /// <summary>
         /// The first render
         /// </summary>
@@ -64,7 +57,7 @@ namespace Radzen.Blazor
             {
                 visibleChanged = false;
 
-                if (Visible && JSRuntime != null)
+                if (Visible)
                 {
                     var rect = await JSRuntime.InvokeAsync<Rect>("Radzen.createGauge", Element, Reference);
 
@@ -124,20 +117,23 @@ namespace Radzen.Blazor
             double width = 0;
             double height = 0;
 
-            if (CurrentStyle.TryGetValue("height", out var pixelHeight))
+            if (CurrentStyle.ContainsKey("height"))
             {
-                if (pixelHeight.EndsWith("px", StringComparison.Ordinal))
+                var pixelHeight = CurrentStyle["height"];
+
+                if (pixelHeight.EndsWith("px"))
                 {
-                    height = Convert.ToDouble(pixelHeight.TrimEnd("px".ToCharArray()), CultureInfo.InvariantCulture);
+                    height = Convert.ToDouble(pixelHeight.TrimEnd("px".ToCharArray()));
                 }
             }
 
-            if (CurrentStyle.TryGetValue("width", out var pixelWidth))
+            if (CurrentStyle.ContainsKey("width"))
             {
+                var pixelWidth = CurrentStyle["width"];
 
-                if (pixelWidth.EndsWith("px", StringComparison.Ordinal))
+                if (pixelWidth.EndsWith("px"))
                 {
-                    width = Convert.ToDouble(pixelWidth.TrimEnd("px".ToCharArray()), CultureInfo.InvariantCulture);
+                    width = Convert.ToDouble(pixelWidth.TrimEnd("px".ToCharArray()));
                 }
             }
 
@@ -153,7 +149,7 @@ namespace Radzen.Blazor
         /// <summary>
         /// The visible changed
         /// </summary>
-        private bool visibleChanged;
+        private bool visibleChanged = false;
 
         /// <summary>
         /// Set parameters as an asynchronous operation.
@@ -170,7 +166,7 @@ namespace Radzen.Blazor
 
             if (visibleChanged && !firstRender)
             {
-                if (Visible == false && JSRuntime != null)
+                if (Visible == false)
                 {
                     await JSRuntime.InvokeVoidAsync("Radzen.destroyGauge", Element);
                 }
@@ -189,25 +185,9 @@ namespace Radzen.Blazor
         {
             base.Dispose();
 
-            if (Visible && JSRuntime != null)
+            if (Visible)
             {
-                JSRuntime.InvokeVoid("Radzen.destroyGauge", Element);
-            }
-
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Updates the right-to-left state when the document direction changes.
-        /// Called from JavaScript via a MutationObserver watching the html element's dir attribute.
-        /// </summary>
-        [JSInvokable]
-        public void SetRTL(bool isRTL)
-        {
-            if (IsRTL != isRTL)
-            {
-                IsRTL = isRTL;
-                StateHasChanged();
+                JSRuntime.InvokeVoidAsync("Radzen.destroyGauge", Element);
             }
         }
 

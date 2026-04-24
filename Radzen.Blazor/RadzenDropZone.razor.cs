@@ -19,48 +19,36 @@ namespace Radzen.Blazor
         /// </summary>
         /// <value>The zone value used to compare items in container Selector function.</value>
         [Parameter]
-        public object? Value { get; set; }
+        public object Value { get; set; }
         
         /// <summary>
         /// Gets or sets the Footer Templated
         /// The Footer Template is rendered below the items in the <see cref="RadzenDropZone{TItem}" />
         /// </summary>
         [Parameter]
-        public RenderFragment? Footer { get; set; }
+        public RenderFragment Footer { get; set; }
 
         [CascadingParameter]
-        RadzenDropZoneContainer<TItem>? Container { get; set; }
+        RadzenDropZoneContainer<TItem> Container { get; set; }
 
         IEnumerable<TItem> Items
         {
             get
             {
-                var container = Container;
-                if (container?.ItemSelector != null && container.Data != null)
-                {
-                    return container.Data.Where(i => container.ItemSelector(i, this));
-                }
-
-                return Enumerable.Empty<TItem>();
+                return Container.ItemSelector != null ? Container.Data.Where(i => Container.ItemSelector(i, this)) : Enumerable.Empty<TItem>();
             }
         }
 
         internal bool CanDrop()
         {
-            var container = Container;
-            if (container?.Payload != null)
+            if (Container.Payload != null)
             {
-                container.Payload.ToZone = this;
-                container.Payload.FromZone = container.Payload.FromZone;
-                container.Payload.Item = container.Payload.Item;
+                Container.Payload.ToZone = this;
+                Container.Payload.FromZone = Container.Payload.FromZone;
+                Container.Payload.Item = Container.Payload.Item;
             }
 
-            if (container == null)
-            {
-                return false;
-            }
-
-            var canDrop = container.CanDrop != null && container.Payload != null ? container.CanDrop(container.Payload) : true;
+            var canDrop = Container.CanDrop != null && Container.Payload != null ? Container.CanDrop(Container.Payload) : true;
 
             return canDrop;
         }
@@ -87,11 +75,7 @@ namespace Radzen.Blazor
         {
             if (CanDrop())
             {
-                var container = Container;
-                if (container?.Payload != null)
-                {
-                    await container.Drop.InvokeAsync(container.Payload);
-                }
+                await Container.Drop.InvokeAsync(Container.Payload);
             }
         }
 
@@ -100,13 +84,13 @@ namespace Radzen.Blazor
         {
             await base.OnAfterRenderAsync(firstRender);
 
-            if (Visible && JSRuntime != null)
+            if (Visible)
             {
                 await JSRuntime.InvokeVoidAsync("Radzen.prepareDrag", Element);
             }
         }
 
-        string cssClass = string.Empty;
+        string cssClass;
 
         /// <inheritdoc />
         protected override string GetComponentCssClass()
@@ -122,11 +106,9 @@ namespace Radzen.Blazor
                 Item = item
             };
 
-            var container = Container;
-
-            if (container?.ItemRender != null)
+            if (Container.ItemRender != null)
             {
-                container.ItemRender(args);
+                Container.ItemRender(args);
             }
 
             return new Tuple<RadzenDropZoneItemRenderEventArgs<TItem>, IReadOnlyDictionary<string, object>>(args, new ReadOnlyDictionary<string, object>(args.Attributes));
