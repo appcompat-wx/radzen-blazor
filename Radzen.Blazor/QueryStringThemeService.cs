@@ -138,6 +138,11 @@ namespace Radzen
 
         private void OnThemeChanged()
         {
+            // HttpNavigationManager doesn't support NavigateTo during SSR
+            if (navigationManager.GetType().Name == "HttpNavigationManager")
+            {
+                return;
+            }
 
             if (hasAttachedJSRuntimeProperty is null || hasAttachedJSRuntimeProperty.GetValue(navigationManager) is true)
             {
